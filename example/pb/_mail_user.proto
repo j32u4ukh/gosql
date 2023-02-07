@@ -1,0 +1,58 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// {"index": [{"name": "索引 1", "columns": ["to_uid", "expiry_time", "del_fl"]}]}
+message _mail_user {
+    // {"comment": "郵件 id", "type": "BIGINT", "size": 20, "default": "ai", "can_null": "false"}
+    int64 id = 1;
+
+    // {"comment": "系統郵件 id", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 system_id = 2;
+
+    // {"comment": "發信玩家id (-1表示系統郵件)", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 from_uid = 3;
+
+    // {"comment": "收信玩家id (-1表示全部)", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 to_uid = 4;
+
+    // {"comment": "標題", "type": "VARCHAR", "size": 40, "default": "'無標題'", "can_null": "false"}
+    string title = 5;
+
+    // {"comment": "信件內容", "type": "VARCHAR", "size": 1024, "default": "''", "can_null": "false"}
+    string content = 6;
+
+    // {"comment": "夾帶的道具列表", "type": "VARCHAR", "size": 128, "default": "''", "can_null": "false"}
+    string item_list = 7;
+
+    // {"comment": "夾帶的金幣值", "type": "INT", "size": 11, "default": "0", "can_null": "true"}
+    int32 gold_0 = 8;
+
+    // {"comment": "夾帶的寶石", "type": "INT", "size": 11, "default": "0", "can_null": "true"}
+    int32 gold_1 = 9;
+
+    // {"comment": "依遊戲定義", "type": "INT", "size": 11, "default": "0", "can_null": "true"}
+    int32 gold_2 = 10;
+
+    // {"comment": "依遊戲定義", "type": "INT", "size": 11, "default": "0", "can_null": "true"}
+    int32 gold_3 = 11;
+    
+    // {"comment": "建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 12;
+
+    // {"comment": "郵件的有效期限", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp expiry_time = 13;
+
+    // {"comment": "刪除旗號", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 del_fl = 14;
+
+    // {"comment": "是否已讀", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 read_fl = 15;
+
+    // {"comment": "是否已領取道具", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 get_fl = 16;
+
+    // {"comment": "最後一次的更新時間", "type": "TIMESTAMP", "can_null": "false"}
+    // {"default": "current_timestamp()", "update": "current_timestamp()"}
+    TimeStamp last_update_time = 17;
+}

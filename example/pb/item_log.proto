@@ -1,0 +1,49 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// {"index": [{"name": "索引 2", "columns": ["create_time", "uid"]}]}
+message item_log {
+    // {"comment": "流水號", "type": "BIGINT", "size": 20, "default": "ai", "primary_key": "default"}
+    int64 id = 1;
+
+    // {"comment": "玩家 ID", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 uid = 2;
+
+    // {"comment": "背包ID (-1表示裝備欄)", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int32 seat1 = 3;
+
+    // {"comment": "道具在背包中的位置", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int32 seat2 = 4;
+
+    // {"comment": "道具編號 (0=無效)", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 item_id = 5;
+
+    // {"comment": "原有虛寶數量", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 old_num = 6;
+
+    // {"comment": "增加的虛寶數量", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 add_num = 7;
+
+    // {"comment": "最後虛寶數量", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 new_num = 8;
+
+    // {"comment": "道具 LV", "type": "SMALLINT", "size": 5, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 lv = 9;
+
+    // {"comment": "道具 EXP", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 exp = 10;
+
+    // {"comment": "鬥魂 LV", "type": "SMALLINT", "size": 5, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 evo_lv = 11;
+
+    // {"comment": "鬥魂 EXP", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 evo_exp = 12;
+
+    // {"comment": "原因(0=使用，1=合成，2=因錯誤而回收)"}
+    // {"type": "SMALLINT", "size": 6, "default": "nil", "can_null": "true"}
+    int32 cause = 13;
+    
+    // {"comment": "資料建立時間", "type": "TIMESTAMP", "size": 6, "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 14;
+}

@@ -1,0 +1,10 @@
+syntax = "proto3";
+option go_package = ".;pbgo";
+
+message achievement_award {  
+    // {"comment": "成就編號", "type": "INT", "size": 11, "default": "nil", "primary_key": "default"}
+    int32 id = 1;
+
+    // {"comment": "寶石", "type": "SMALLINT", "size": 6, "default": "0", "can_null":"false"}
+    int32 gem = 2;
+}

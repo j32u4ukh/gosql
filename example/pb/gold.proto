@@ -1,0 +1,67 @@
+syntax = "proto3";
+option go_package = ".;pbgo";
+
+message gold {
+    // {"comment": "玩家 ID", "type": "BIGINT", "size": 20, "default": "0", "primary_key": "default"}
+    int64 uid = 1;
+
+    // {"comment": "遊戲幣", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_0 = 2;
+
+    // {"comment": "綠寶石", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_1 = 3;
+
+    // {"comment": "普通鑰匙", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_2 = 4;
+
+    // {"comment": "黑曜石鑰匙", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_3 = 5;
+
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_4 = 6;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_5 = 7;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_6 = 8;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_7 = 9;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_8 = 10;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 gold_9 = 11;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_0 = 12;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_1 = 13;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_2 = 14;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_3 = 15;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_4 = 16;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_5 = 17;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_6 = 18;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_7 = 19;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_8 = 20;
+    
+    // {"comment": "保留", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 bonus_9 = 21;
+}

@@ -1,0 +1,45 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+message user_item {
+    // {"comment": "玩家的 uid", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 uid = 1;
+
+    // {"comment": "背包ID(-1表示裝備欄)", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int64 seat1 = 2;
+
+    // {"comment": "道具在背包中的位置", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int32 seat2 = 3;
+
+    // {"comment": "道具編號(0=無效)", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 item_id = 4;
+
+    // {"comment": "道具數量", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 num = 5;
+
+    // {"comment": "道具 LV", "type": "SMALLINT", "size": 5, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 lv = 6;
+
+    // {"comment": "道具 EXP", "type": "INT", "size": 10, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 exp = 7;
+
+    // {"comment": "鬥魂 LV", "type": "SMALLINT", "size": 5, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 evo_lv = 8;
+
+    // {"comment": "鬥魂 EXP", "type": "INT", "size": 10, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 evo_exp = 9;
+
+    // {"comment": "特別位元旗號", "type": "SMALLINT", "size": 5, "default": "0", "can_null": "false", "unsigned": "true"}
+    int32 sp_fl = 10;
+
+    // {"comment": "唯一碼", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 unique_code = 11;
+
+    // {"comment": "資料建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 12;
+
+    // {"comment": "最後一次的更新時間", "type": "TIMESTAMP", "can_null": "false"}    
+    // {"default": "current_timestamp()", "update": "current_timestamp()"}
+    TimeStamp last_update_time = 13;
+}

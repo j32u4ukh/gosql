@@ -1,0 +1,30 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// {"index": [{"name": "索引 2", "columns": ["type"]}]}
+message item_list {
+    // {"comment": "道具編號", "type": "INT", "size": 11, "can_null": "false", "primary_key": "default"}
+    int32 id = 1;
+
+    // {"comment": "道具類別", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 type = 2;
+
+    // {"comment": "稀有度", "type": "TINYINT", "size": 4, "default": "1", "can_null": "false"}
+    int32 rare_lv = 3;
+
+    // {"comment": "道具名稱", "type": "VARCHAR", "size": 20, "default": "''", "can_null": "false"}
+    string name = 4;
+
+    // {"comment": "最大堆疊數", "type": "INT", "size": 11, "default": "1", "can_null": "false"}
+    int32 max_stack = 5;
+
+    // {"comment": "道具最大 LV", "type": "SMALLINT", "size": 6, "default": "1", "can_null": "true"}
+    int32 max_lv = 6;
+
+    // {"comment": "鬥魂最大等級", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "true"}
+    int32 max_evo_lv = 7;
+
+    // {"comment": "建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 8;
+}

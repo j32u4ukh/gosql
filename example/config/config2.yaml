@@ -1,0 +1,6 @@
+Database:
+  UserName: "user"
+  Password: "password"
+  Server: "192.168.100.144"
+  Port: 3306
+  Name: "demo2"

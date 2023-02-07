@@ -1,0 +1,20 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+package test;
+
+// 編譯：執行 compile_protobuf.bat
+// --unique:UKey(user_id/item_id2),algo=BTREE --index:Key(index/item_id2),algo=default
+message Desk {
+    // {"comment": "索引值", "size": 23, "default": "AI", "primary_key": "default"}
+    int32 index = 1;
+
+    // {"comment": "玩家名稱", "size": 20, "primary_key": "default"}
+    string user_name = 2;
+
+    // {"comment": "物品 ID", "type": "SMALLINT", "size": 5, "can_null": "true"}
+    int32 item_id = 3;
+
+    // {"comment": "Log 建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp time = 4;
+}

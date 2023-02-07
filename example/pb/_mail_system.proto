@@ -1,0 +1,44 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// {"index": [{"name": "索引 2", "columns": ["expiry_time", "del_fl"]}]}
+// {"index": [{"name": "索引 3", "columns": ["last_update_time", "del_fl"]}]}
+message _mail_system {
+    // {"comment": "系統郵件 ID", "type": "BIGINT", "size": 20, "default": "ai", "can_null": "false"}
+    int64 id = 1;
+
+    // {"comment": "標題", "type": "VARCHAR", "size": 40, "default": "'無標題'", "can_null": "false"}
+    string title = 2;
+
+    // {"comment": "信件內容", "type": "VARCHAR", "size": 1024, "default": "''", "can_null": "false"}
+    string content = 3;
+
+    // {"comment": "夾帶的道具列表", "type": "VARCHAR", "size": 128, "default": "''", "can_null": "false"}
+    string item_list = 4;
+
+    // {"comment": "夾帶的金幣值", "type": "INT", "size": 11, "default": "0", "can_null": "true"}
+    int32 gold_0 = 5;
+
+    // {"comment": "夾帶的寶石", "type": "INT", "size": 11, "default": "0", "can_null": "true"}
+    int32 gold_1 = 6;
+
+    // {"comment": "依遊戲定義", "type": "INT", "size": 11, "default": "0", "can_null": "true"}
+    int32 gold_2 = 7;
+
+    // {"comment": "依遊戲定義", "type": "INT", "size": 11, "default": "0", "can_null": "true"}
+    int32 gold_3 = 8;
+
+    // {"comment": "建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 9;
+
+    // {"comment": "郵件的有效期限", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp expiry_time = 10;
+
+    // {"comment": "刪除旗號", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int32 del_fl = 11;
+
+    // {"comment": "最後一次的更新時間", "type": "TIMESTAMP", "can_null": "false"}
+    // {"default": "current_timestamp()", "update": "current_timestamp()"}
+    TimeStamp last_update_time = 12;
+}

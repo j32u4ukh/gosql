@@ -1,0 +1,51 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// {"index": [{"name": "索引 2", "columns": ["create_time", "pay_platform"]}]}
+// {"index": [{"name": "索引 3", "columns": ["create_time", "game_code"]}]}
+message pay_log {
+    // {"comment": "流水號", "type": "BIGINT", "size": 20, "default": "ai", "primary_key": "default"}
+    int64 id = 1;
+
+    // {"comment": "遊戲編號", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 game_code = 2;
+    
+    // {"comment": "Server 編號", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 server_code = 3;
+
+    // {"comment": "玩家 ID", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 uid = 4;
+
+    // {"comment": "付費平台\r\n1=Google\r\n2=Apple\r\n3=FB\r\n"}
+    // {"type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 pay_platform = 5;
+
+    // {"comment": "交易 ID", "type": "VARCHAR", "size": 32, "default": "''", "can_null": "false"}
+    string trade_id = 6;
+
+    // {"comment": "購買項目的 ID", "type": "VARCHAR", "size": 64, "default": "''", "can_null": "false"}
+    string buy_options_id = 7;
+
+    // {"comment": "交易金額單位\r\n0=台幣\r\n1=人民幣\r\n2=美金\r\n"}
+    // {"type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 cash_type = 8;
+
+    // {"comment": "交易金額", "type": "DOUBLE", "default": "0", "can_null": "false"}
+    double cash = 9;
+
+    // {"comment": "金幣別", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 gold_type = 10;
+
+    // {"comment": "增加多少金幣", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int32 add_gold = 11;
+
+    // {"comment": "貢獻值", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 contribute = 12;
+
+    // {"comment": "錯誤碼", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int64 error_code = 13;
+
+    // {"comment": "資料建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 14;
+}

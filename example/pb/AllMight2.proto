@@ -1,0 +1,34 @@
+syntax = "proto3";
+import "pb/Currency.proto";
+// import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// 編譯：執行 compile_protobuf.bat
+message AllMight2 {
+    // {"comment": "Message"}
+    Currency c = 1;
+
+    // {"comment": "map<int32, int32>"}
+    map<int32, int32> mii = 2;
+
+    // {"comment": "map<int32, string>"}
+    map<int32, string> mis = 3;
+
+    // {"comment": "map<string, int32>"}
+    map<string, int32> msi = 4;
+
+    // {"comment": "map<string, string>"}
+    map<string, string> mss = 5;
+
+    // {"comment": "TINYINT", "type":"TINYINT", "size": 4, "unsigned": "true"}
+    int32 uti = 6;  
+
+    // {"comment": "SMALINT", "type":"SMALINT", "size": 6, "unsigned": "true"}
+    int32 usi = 7;  
+
+    // {"comment": "MEDIUMINT", "type":"MEDIUMINT", "size": 9, "unsigned": "true"}
+    int32 umi = 8;
+
+    // {"comment": "INT", "type":"INT", "size": 11, "unsigned": "true", "primary_key": "default"}
+    int32 ui = 9;
+}

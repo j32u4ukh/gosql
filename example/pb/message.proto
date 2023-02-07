@@ -1,0 +1,9 @@
+syntax = "proto3";
+option go_package = ".;pbgo";
+
+// 編譯：執行 compile_protobuf.bat
+message Message {
+    int64 timestamp = 1;
+    string text = 2;
+    bool flag = 3;
+}

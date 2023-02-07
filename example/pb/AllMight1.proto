@@ -1,0 +1,45 @@
+syntax = "proto3";
+// import "pb/Currency.proto";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// 編譯：執行 compile_protobuf.bat
+message AllMight1 {
+    // {"comment": "BIGINT", "type":"BIGINT", "size": 19, "primary_key": "default"}
+    int64 bi = 1;
+
+    // {"comment": "bool 的 size 應為 1", "type":"TINYINT", "size": 2}
+    bool b = 2; 
+
+    // {"comment": "TINYINT", "type":"TINYINT", "size": 3}
+    int32 ti = 3;  
+
+    // {"comment": "SMALINT", "type":"SMALINT", "size": 5}
+    int32 si = 4;  
+
+    // {"comment": "MEDIUMINT", "type":"MEDIUMINT", "size": 8}
+    int32 mi = 5;
+
+    // {"comment": "INT", "type":"INT", "size": 10}
+    int32 i = 6;
+
+    // {"comment": "TINYTEXT", "type":"TINYTEXT"}
+    string tt = 7;
+
+    // {"comment": "VARCHAR", "type":"VARCHAR", "size":2000}
+    string vc = 8;
+
+    // {"comment": "TEXT", "type":"TEXT"}
+    string t = 9;
+
+    // {"comment": "MEDIUMTEXT", "type":"MEDIUMTEXT"}
+    string mt = 10;
+
+    // {"comment": "LONGTEXT", "type":"LONGTEXT"}
+    string lt = 11;
+
+    // TIMESTAMP 類型的預設值若為 current_timestamp() ，在插入時會填入 NULL 讓資料庫自行填入當前時間
+    // 但若允許為空，就不會觸發自行填入時間的機制
+    // {"comment": "TIMESTAMP", "type":"TIMESTAMP", "can_null": "false", "default":"current_timestamp()", "update":"current_timestamp()"}
+    TimeStamp ts = 12;
+}

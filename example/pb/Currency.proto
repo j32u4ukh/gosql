@@ -1,0 +1,19 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+
+option go_package = ".;pbgo";
+
+// 編譯：執行 compile_protobuf.bat
+message Currency {
+    // {"comment": "玩家 ID", "size": 20, "primary_key": "default"}
+    int64 player_id = 1;
+
+    // {"comment": "鑽石數量", "size": 20, "can_null": "false", "default": 0}
+    int64 diamond = 2;
+
+    // {"comment": "金幣數量", "size": 20, "can_null": "false", "default": 0}
+    int64 gold = 3;
+
+    // {"comment": "Log 建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp time = 4;
+}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// {"index": [{"name": "索引 2", "columns": ["env_type", "create_time", "game_code", "server_code"]}]}
+message online_ppl {
+    // {"comment": "流水號", "type": "INT", "size": 11, "default": "ai", "primary_key": "default"}
+    int32 id = 1;
+
+    // {"comment": "環境類別 0=作者開發環境，1=開發測試環境，2=運營測試環境，3=審核環境，4=正式環境"}
+    // {"type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 env_type = 2;
+
+    // {"comment": "遊戲編號(-1表示全部)", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 game_code = 3;
+
+    // {"comment": "伺服器編號(-1表示全部)", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 server_code = 4;
+    
+    // {"comment": "人數", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 ppl_num = 5;
+
+    // {"comment": "機器人數量", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 robot_num = 6;
+
+    // {"comment": "資料建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 7;
+}

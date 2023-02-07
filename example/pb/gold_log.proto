@@ -1,0 +1,40 @@
+syntax = "proto3";
+option go_package = ".;pbgo";
+import "pb/TimeStamp.proto";
+
+// {"index": [{"name": "索引 1", "columns": ["create_time", "game_code", "server_code"]}]}
+// {"index": [{"name": "索引 2", "columns": ["create_time", "uid", "cause"]}]}
+message gold_log {
+    // {"comment": "流水號", "type": "BIGINT", "size": 20, "default": "ai", "primary_key": "default"}
+    int64 id = 1;
+
+    // {"comment": "遊戲編號", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int32 game_code = 2;
+
+    // {"comment": "Server 編號", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int32 server_code = 3;
+
+    // {"comment": "玩家 ID", "type": "BIGINT", "size": 20, "default": "-1", "can_null": "false"}
+    int64 uid = 4;
+
+    // {"comment": "金幣類別", "type": "TINYINT", "size": 4, "default": "nil", "can_null": "false"}
+    int32 gold_type = 5;
+
+    // {"comment": "原本的金幣值", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 old_gold = 6;
+
+    // {"comment": "增加多少金幣值", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 add_gold = 7;
+
+    // {"comment": "最後的金幣值", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 new_gold = 8;
+
+    // {"comment": "原因", "type": "INT", "size": 11, "default": "nil", "can_null": "false"}
+    int32 cause = 9;
+
+    // {"comment": "錯誤碼", "type": "INT", "size": 11, "default": "nil", "can_null": "false"}
+    int32 error_code = 10;
+
+    // {"comment": "資料建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 11;
+}

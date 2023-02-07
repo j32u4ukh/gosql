@@ -1,0 +1,38 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+message history_log {
+    // {"comment": "流水號", "type": "BIGINT", "size": 20, "default": "ai", "primary_key": "default"}
+    int64 id = 1;
+
+    // {"comment": "玩家 ID", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 uid = 2;
+
+    // {"comment": "分類\r\n1=總等級\r\n2=金錢\r\n3=寶石\r\n4=裝備\r\n5=角色\r\n6=天賦\r\n7=寵物"}
+    // {"type": "SMALLINT", "size": 6, "default": "0", "can_null": "true"}
+    int32 type = 3;
+
+    // {"comment": "子分類\r\n0=無特別原因\r\n1=+LV\r\n2=拆LV\r\n3=+鬥魂\r\n4=拆鬥魂\r\n5=完全分解"}
+    // {"type": "SMALLINT", "size": 6, "default": "0", "can_null": "true"}
+    int32 type1 = 4;
+
+    // {"comment": "原因\r\n0=無特別原因\r\n1=消費金錢\r\n2=消費寶石\r\n3=消費道具\r\n4=消費金錢+道具"}
+    // {"type": "SMALLINT", "size": 6, "default": "0", "can_null": "true"}
+    int32 cause = 5;
+
+    // {"comment": "自定義資料 0", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 d0 = 6;
+
+    // {"comment": "自定義資料 1", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 d1 = 7;
+
+    // {"comment": "自定義資料 2", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 d2 = 8;
+
+    // {"comment": "自定義資料 3", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 d3 = 9;
+
+    // {"comment": "帳號建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 10;
+}

@@ -1,0 +1,37 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+message stage_award {
+    // {"comment": "難度 0=easy;1=normal;2=hard"}
+    // {"type": "TINYINT", "size": 4, "default": "0", "primary_key": "default"}
+    int32 diff_lv = 1;
+
+    // {"comment": "關卡 ID", "type": "INT", "size": 11, "default": "0", "primary_key": "default"}
+    int32 stage = 2;
+
+    // {"comment": "行動值", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 act = 3;
+
+    // {"comment": "錢 ", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 gold = 4;
+
+    // {"comment": "寶石", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 gem = 5;
+
+    // {"comment": "一般鑰匙", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 key_0 = 6;
+
+    // {"comment": "黑曜石鑰匙", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 key_1 = 7;
+
+    // {"comment": "通關獎勵", "type": "VARCHAR", "size": 50, "default": "''", "can_null": "false"}
+    string award = 8;
+
+    // {"comment": "帳號建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 9;
+
+    // {"comment": "最後一次的更新時間", "type": "TIMESTAMP", "size": 6, "can_null": "false"}
+    // {"default": "current_timestamp()", "update": "current_timestamp()"}
+    TimeStamp last_update_time = 10;
+}

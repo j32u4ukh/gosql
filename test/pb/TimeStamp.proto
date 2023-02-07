@@ -1,0 +1,24 @@
+syntax = "proto3";
+option go_package = ".;pbgo";
+package test;
+
+// 編譯：執行 compile_protobuf.bat
+message TimeStamp {
+    // 年
+    int32 year = 1;
+
+    // 月
+    int32 month = 2;
+
+    // 日
+    int32 day = 3;
+
+    // 時
+    int32 hour = 4;
+
+    // 分
+    int32 minute = 5;
+
+    // 秒
+    int32 second = 6;
+}

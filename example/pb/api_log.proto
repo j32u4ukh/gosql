@@ -1,0 +1,26 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// {"index": [{"name": "索引 1", "columns": ["create_time", "uid"]}]}
+// {"index": [{"name": "索引 2", "columns": ["create_time", "api_type"]}]}
+// {"index": [{"name": "索引 3", "columns": ["create_time", "ret"]}]}
+message api_log {
+    // {"comment": "玩家 ID", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 uid = 1;
+
+    // {"comment": "通行口令", "type": "BIGINT", "size": 20, "default": "nil", "can_null": "false"}
+    int64 token = 2;
+
+    // {"comment": "叫用的 api 名稱", "type": "INT", "size": 11, "default": "nil", "can_null": "false"}
+    int32 api_type = 3;
+
+    // {"comment": "錯誤碼", "type": "INT", "size": 11, "default": "nil", "can_null": "false"}
+    int32 ret = 4;
+
+    // {"comment": "寶石", "type": "TEXT", "default": "''", "can_null": "false"}
+    string msg = 5;
+
+    // {"comment": "帳號建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 6;
+}

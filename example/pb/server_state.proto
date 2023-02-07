@@ -1,0 +1,23 @@
+syntax = "proto3";
+option go_package = ".;pbgo";
+import "pb/TimeStamp.proto";
+
+message server_state {
+    // {"comment": "遊戲編號", "type": "SMALLINT", "size": 6, "default": "nil", "primary_key": "default"}
+    int32 game_code = 1;
+
+    // {"comment": "Server 編號", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int32 server_code = 2;
+
+    // {"comment": "Server 名稱", "type": "VARCHAR", "size": 128, "default": "''", "can_null": "true"}
+    string server_name = 3;
+
+    // {"comment": "版號", "type": "VARCHAR", "size": 32, "default": "''", "can_null": "true"}
+    string ver = 4;
+
+    // {"comment": "狀態 0=未連線，1=連線中", "type": "TINYINT", "size": 4, "default": "0", "can_null": "true"}
+    int32 state = 5;
+    
+    // {"comment": "最後一次連入的時間", "type": "TIMESTAMP", "default": "null", "can_null": "true"}
+    TimeStamp last_connect_datetime = 6;
+}

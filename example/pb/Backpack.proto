@@ -1,0 +1,13 @@
+syntax = "proto3";
+// import "pb/Currency.proto";
+option go_package = ".;pbgo";
+
+// 編譯：執行 compile_protobuf.bat
+message Backpack {
+    // {"comment": "玩家 ID", "size": 20, "primary_key": "default"}
+    int64 player_id = 1;
+
+    // 背包內物品等級(key: index; value: level of item)
+    // {"comment": "物品", "size": 20}
+    map<int32, int32> items = 2;
+}

@@ -1,0 +1,70 @@
+syntax = "proto3";
+option go_package = ".;pbgo";
+import "pb/TimeStamp.proto";
+
+// {"index": [{"name": "索引 2", "columns": ["env_type", "game_code", "create_time", "uid"]}]}
+message common_log {
+    // {"comment": "流水編號", "type": "BIGINT", "size": 20, "default": "ai", "primary_key": "default"}
+    int64 id = 1;
+
+    // {"comment": "環境類別", "type": "TINYINT", "size": 4, "default": "nil", "can_null": "false"}
+    int32 env_type = 2;
+
+    // {"comment": "遊戲編號", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int32 game_code = 3;
+
+    // {"comment": "打點分類", "type": "SMALLINT", "size": 6, "default": "nil", "can_null": "false"}
+    int32 bi_type = 4;
+
+    // {"comment": "-1=未知，0=PC，1=Android，2=iOS"}
+    // {"type": "TINYINT", "size": 4, "default": "-1", "can_null": "false"}
+    int32 app_type = 5;
+
+    // {"comment": "玩家 ID", "type": "BIGINT", "size": 20, "default": "-1", "can_null": "false"}
+    int32 uid = 6;
+
+    // {"comment": "資料 1", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 data_1 = 7;
+
+    // {"comment": "資料 2", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 data_2 = 8;
+
+    // {"comment": "資料 10", "type": "DOUBLE", "default": "0", "can_null": "false"}
+    double data_10 = 9;
+
+    // {"comment": "資料 20", "type": "TEXT", "default": "'0'", "can_null": "true"}
+    string data_20 = 10;
+
+    // {"comment": "Log 建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 11;
+
+    // {"comment": "字串 0", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_0 = 12;
+    
+    // {"comment": "字串 1", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_1 = 13;
+
+    // {"comment": "字串 2", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_2 = 14;
+
+    // {"comment": "字串 3", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_3 = 15;
+
+    // {"comment": "字串 4", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_4 = 16;
+
+    // {"comment": "字串 5", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_5 = 17;
+
+    // {"comment": "字串 6", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_6 = 18;
+
+    // {"comment": "字串 7", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_7 = 19;
+
+    // {"comment": "字串 8", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_8 = 20;
+
+    // {"comment": "字串 9", "type": "MEDIUMTEXT", "size": 4, "default": "''", "can_null": "false"}
+    string d_9 = 21;
+}

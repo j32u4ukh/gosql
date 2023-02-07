@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = ".;pbgo";
+
+// 編譯：執行 compile_protobuf.bat
+message login_award_7 {
+    // {"comment": "第幾天", "type": "INT", "size": 11, "default": "nil", "can_null": "false"}
+    int32 day = 1;
+
+    // {"comment": "行動值", "type": "INT", "size": 1, "default": "0", "can_null": "false"}
+    int32 act = 2;
+
+    // {"comment": "錢", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 gold = 3;
+
+    // {"comment": "寶石", "type": "SMALLINT", "size": 6, "default": "0", "can_null": "false"}
+    int32 gem = 4;
+
+    // {"comment": "一般鑰匙", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 key_0 = 5;
+
+    // {"comment": "黑曜石鑰匙", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 key_1 = 6;
+
+    // {"comment": "通關獎勵", "type": "VARCHAR", "default": "''", "can_null": "false"}
+    string award = 7;
+}

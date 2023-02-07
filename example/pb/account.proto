@@ -1,0 +1,63 @@
+syntax = "proto3";
+import "pb/TimeStamp.proto";
+option go_package = ".;pbgo";
+
+// {"unique": [{"name": "guest_idx", "columns": ["game_code", "account_guest"]}]}
+// {"unique": [{"name": "google_idx", "columns": ["game_code", "account_google"]}]}
+// {"unique": [{"name": "apple_idx", "columns": ["game_code", "account_apple"]}]}
+// {"unique": [{"name": "fb_idx", "columns": ["game_code", "account_fb"]}]}
+message account {
+    // {"comment": "玩家 ID", "type": "BIGINT", "size": 20, "default": "ai", "can_null": "false"}
+    int64 id = 1;
+
+    // {"comment": "隨機亂數(和 uid 搭配可以避免玩家亂認帳號)"}
+    // {"type": "INT", "size": 11, "default": "null", "can_null": "true"}
+    int32 uid_rand = 2;
+
+    // {"comment": "遊戲編號", "type": "BIGINT", "size": 20, "default": "-1", "can_null": "false"}
+    int32 game_code = 3;
+
+    // {"comment": "app 來源渠道 ID", "type": "INT", "size": 11, "default": "-1", "can_null": "false"}
+    int32 app_source_id = 4;
+
+    // {"comment": "app 的版號", "type": "TINYTEXT", "default": "nil", "can_null": "false"}
+    string app_ver = 5;
+
+    // {"comment": "玩家設備的OS(-1=不明來源，0=PC，1=Android，2=iOS，99=其他平台)"}
+    // {"type": "TINYINT", "size": 4, "default": "-1", "can_null": "false"}
+    int32 device_os_type = 6;
+
+    // {"comment": "參觀帳號(純英文)", "type": "VARCHAR", "size": 128, "default": "null", "can_null": "true"}
+    string account_guest = 7;
+
+    // {"comment": "Google帳號(純英文)", "type": "VARCHAR", "size": 128, "default": "null", "can_null": "true"}
+    string account_google = 8;
+
+    // {"comment": "Apple帳號(純英文)", "type": "VARCHAR", "size": 128, "default": "null", "can_null": "true"}
+    string account_apple = 9;
+
+    // {"comment": "fb帳號(純英文)", "type": "VARCHAR", "size": 128, "default": "null", "can_null": "true"}
+    string account_fb = 10;
+
+    // {"comment": "暱稱(可中文)", "type": "VARCHAR", "size": 20, "default": "null", "can_null": "true"}
+    string nickname = 11;
+
+    // {"comment": "信箱(純英文)", "type": "VARCHAR", "size": 256, "default": "''", "can_null": "false"}
+    string email = 12;
+
+    // {"comment": "帳號建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}
+    TimeStamp create_time = 13;
+
+    // {"comment": "最後一次的更新時間", "type": "TIMESTAMP", "can_null": "false"}
+    // {"default": "current_timestamp()", "update": "current_timestamp()"}
+    TimeStamp last_update_time = 14;
+
+    // {"comment": "會員等級", "type": "TINYINT", "size": 4, "default": "0", "can_null": "false"}
+    int32 vip_lv = 15;
+
+    // {"comment": "貢獻值", "type": "BIGINT", "size": 20, "default": "0", "can_null": "false"}
+    int64 contribute = 16;
+
+    // {"comment": "GM 旗號", "type": "INT", "size": 11, "default": "0", "can_null": "false"}
+    int32 gm_fl = 17;
+}
