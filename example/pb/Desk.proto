@@ -12,7 +12,7 @@ message Desk {
     // {"comment": "玩家名稱", "size": 20}
     string user_name = 2;
 
-    // {"ignore": "true", "comment": "物品 ID", "type": "INT", "size": 5, "can_null": "true"}
+    // {"comment": "物品 ID", "type": "INT", "size": 5, "can_null": "true"}
     int32 item_id = 3;
 
     // {"comment": "Log 建立時間", "type": "TIMESTAMP", "default": "current_timestamp()", "can_null": "false"}

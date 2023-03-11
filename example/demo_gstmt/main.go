@@ -70,6 +70,8 @@ func main() {
 		CreateDemo()
 	case "i":
 		InsertDemo()
+	case "is":
+		InsertStatementDemo()
 	case "q":
 		QueryDemo()
 	case "u":
@@ -101,6 +103,9 @@ func CreateDemo() {
 }
 
 // 125000 筆/50.7553501s | 2462 筆/s -> 125000 筆/50.6376619s | 2468 筆/s
+// 70.8177351s / 125000 rows -> 567 us/row
+// 1.033ms/1row -> 7.7917ms/10rows -> 55.2513ms/100rows -> 131.0093ms/250rows -> 275.1029ms/500rows -> 556.0053ms/1000rows
+// 1.033 ms/row -> 0.77917 ms/row -> 0.552513 ms/row -> 0.5240372 ms/row -> 0.5502058 ms/row -> 0.5560053 ms/row
 func InsertDemo() {
 	sql, err = gs.CreateTable(0, "../pb", "Desk")
 
@@ -136,6 +141,34 @@ func InsertDemo() {
 	fmt.Printf("Cost time: %+v\n", time.Since(start))
 }
 
+func InsertStatementDemo() {
+	sql, err = gs.CreateTable(0, "../pb", "Desk")
+
+	if err != nil {
+		fmt.Printf("Create err: %+v\n", err)
+		return
+	}
+
+	var i int32
+	var num int32 = 1000000
+	start := time.Now()
+
+	for i = 0; i < num; i++ {
+		sql, err = gs.Insert(TID, []protoreflect.ProtoMessage{&pbgo.Desk{
+			UserName: "2",
+			ItemId:   i,
+		}})
+
+		if err != nil {
+			fmt.Printf("Error: %+v", err)
+			return
+		}
+	}
+
+	cost := time.Since(start)
+	fmt.Printf("Cost time: %+v, %+v us/row\n", cost, float64(cost)/float64(num))
+}
+
 func QueryDemo() {
 	sql, err = gs.CreateTable(0, "../pb", "Desk")
 
@@ -164,6 +197,7 @@ func QueryDemo() {
 }
 
 // 125000 筆/55.3019832s | 2260 筆/s
+// 71.9243555s / 125000 rows | 575 us/row
 func UpdateDemo() {
 	sql, err = gs.CreateTable(0, "../pb", "Desk")
 
@@ -183,14 +217,14 @@ func UpdateDemo() {
 			ItemId:   i,
 		}
 
-		sql, err = gs.Update(TID, desk, gdo.WS().Eq("index", i+1))
+		sql, err = gs.Update(TID, desk, gdo.WS().Eq("index", desk.Index))
 
 		if err != nil {
 			fmt.Printf("Update item_id(%d) Error: %+v\n", i, err)
 			return
 		}
 
-		result, err = db.Exec(sql)
+		_, err = db.Exec(sql)
 
 		if err != nil {
 			fmt.Printf("Update Exec err: %+v\n", err)

@@ -108,6 +108,10 @@ func (g *Gstmt) CreateTable(tid byte, folder string, tableName string) (string, 
 // Insert
 // ====================================================================================================
 func (g *Gstmt) Insert(tid byte, pms []protoreflect.ProtoMessage) (string, error) {
+	// start := time.Now()
+	// defer func() {
+	// 	fmt.Printf("Cost time: %v\n", time.Since(start))
+	// }()
 	if table, ok := g.tables[tid]; ok {
 		table.InitByProtoMessage(pms[0])
 		table.Insert(pms)

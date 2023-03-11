@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/utils/cntr"
@@ -32,10 +33,16 @@ func main() {
 		CreateDemo()
 	case "i":
 		InsertDemo()
+	case "it":
+		InsertTestDemo()
+	case "is":
+		InsertStatementDemo()
 	case "q":
 		QueryDemo()
 	case "u":
 		UpdateDemo()
+	case "ut":
+		UpdateTestDemo()
 	case "d":
 		DeleteDemo()
 	default:
@@ -67,6 +74,45 @@ func InsertDemo() {
 	fmt.Printf("result: %s\n", result)
 }
 
+// 71.7612942s / 125000 rows | 574 us/row
+// 567.2 µs/row -> 3.6503ms / 10rows -> 34.0006ms / 100rows -> 81.1401ms/175rows -> 127.2253ms/250rows -> 276.8077ms / 500 rows -> 570.4072ms/1000rows
+// 567.2 µs/row -> 0.36503 ms/row -> 0.340006 ms/row -> 0.46365771428 ms/row -> 0.5089012 ms/row -> 0.5536154 ms/row -> 0.5704072 ms/row
+func InsertTestDemo() {
+	start := time.Now()
+	var sql string
+	var err error
+	var i int32
+	sql = "INSERT INTO `pekomiko`.`Desk` (`user_name`, `item_id`) VALUES ('sss', '23');"
+
+	for i = 0; i < 175; i++ {
+		_, err = db.Exec(sql)
+
+		if err != nil {
+			fmt.Printf("Insert err: %+v\n", err)
+			return
+		}
+	}
+
+	fmt.Printf("Cost time: %+v\n", time.Since(start))
+}
+
+func InsertStatementDemo() {
+	start := time.Now()
+	var sql string
+	var i int32
+	var num int32 = 1000000
+
+	for i = 0; i < num; i++ {
+		sql = fmt.Sprintf("INSERT INTO `pekomiko`.`Desk` (`user_name`, `item_id`) VALUES ('sss', '%d');", i)
+		if sql == "" {
+			return
+		}
+	}
+
+	cost := time.Since(start)
+	fmt.Printf("Cost time: %+v, %+v us/row\n", cost, float64(cost)/float64(num))
+}
+
 func QueryDemo() {
 	sql := "SELECT `index`, `user_name`, `item_id`, `time` FROM `pekomiko`.`Desk`;"
 	result, err := db.Query(sql)
@@ -92,6 +138,26 @@ func UpdateDemo() {
 	}
 
 	fmt.Printf("result: %s\n", result)
+}
+
+// 70.6651062s / 125000 rows | 565 us/row
+func UpdateTestDemo() {
+	start := time.Now()
+	var sql string
+	var err error
+	var i int32
+
+	for i = 0; i < 125000; i++ {
+		sql = fmt.Sprintf("UPDATE `pekomiko`.`Desk` SET `item_id`='30' WHERE `index`=%d;", i+1)
+		_, err = db.Exec(sql)
+
+		if err != nil {
+			fmt.Printf("Insert err: %+v\n", err)
+			return
+		}
+	}
+
+	fmt.Printf("Cost time: %+v\n", time.Since(start))
 }
 
 func DeleteDemo() {
