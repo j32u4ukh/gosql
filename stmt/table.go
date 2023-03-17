@@ -1,10 +1,9 @@
 package stmt
 
 import (
-	"github.com/j32u4ukh/gosql/utils/cntr"
-
 	"fmt"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/pkg/errors"
 )
 

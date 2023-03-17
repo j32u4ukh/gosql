@@ -3,9 +3,8 @@ package proto
 import (
 	"reflect"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/gdo"
-	"github.com/j32u4ukh/gosql/utils/cntr"
-
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )

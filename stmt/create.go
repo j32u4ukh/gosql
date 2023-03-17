@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql"
-	"github.com/j32u4ukh/gosql/utils/cntr"
 )
 
 // CREATE DATABASE `PVP` /*!40100 COLLATE 'utf8mb4_bin' */

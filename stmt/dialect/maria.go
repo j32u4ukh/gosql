@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
-	"github.com/j32u4ukh/gosql/utils/cntr"
 )
 
 type maria struct {

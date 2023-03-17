@@ -6,10 +6,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
-	"github.com/j32u4ukh/gosql/utils/cntr"
 	"github.com/pkg/errors"
 )
 

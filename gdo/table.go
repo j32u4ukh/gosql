@@ -3,9 +3,9 @@ package gdo
 import (
 	"fmt"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
-	"github.com/j32u4ukh/gosql/utils/cntr"
 )
 
 type Table struct {

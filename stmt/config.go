@@ -3,7 +3,7 @@ package stmt
 import (
 	"encoding/json"
 
-	"github.com/j32u4ukh/gosql/utils/cntr"
+	"github.com/j32u4ukh/cntr"
 	"github.com/pkg/errors"
 )
 

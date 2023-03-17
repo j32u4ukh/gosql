@@ -7,7 +7,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql" // 未直接使用此套件，但背後執行時有用到，因此以此形式 import
-	"github.com/j32u4ukh/gosql/utils/cntr"
+	"github.com/j32u4ukh/cntr"
 	"github.com/pkg/errors"
 )
 

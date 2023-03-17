@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/database"
-	"github.com/j32u4ukh/gosql/utils/cntr"
 )
 
 var db *database.Database
