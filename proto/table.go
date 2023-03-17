@@ -48,10 +48,3 @@ func (t *ProtoTable) InitByProtoMessage(pm protoreflect.ProtoMessage) {
 		t.Table.SetColumnNames(t.Table.ColumnNames.Elements)
 	}
 }
-
-func (t *ProtoTable) SyncClone() *ProtoTable {
-	clone := &ProtoTable{
-		Table: t.Table.SyncClone(),
-	}
-	return clone
-}

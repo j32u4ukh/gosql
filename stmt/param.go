@@ -13,14 +13,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-/*
-TODO: {"key": "value"}
-
-TableParam 附加定義
-* 字串中不可以有空格
-
-*/
-
 type TableParam struct {
 	// Primary key
 	Primarys *cntr.Array[string]
@@ -53,13 +45,43 @@ func NewTableParam() *TableParam {
 
 	// Primary key 排序演算法設置
 	p.IndexType["PRIMARY"] = ALGO
-
 	return p
 }
 
-func (p *TableParam) ParserConfig(config string) {
-	// glog.Trace("gosql", "config: %s\n", config)
+func (p *TableParam) LoadConfig(config *TableParamConfig) {
+	var kind string
+	var indexs *IndexConfig
 
+	for _, kind = range config.Primarys.Elements {
+		if !p.Primarys.Contains(kind) {
+			p.Primarys.Append(kind)
+		}
+	}
+
+	for _, indexs = range config.Uniques {
+		kind = strings.ToUpper(indexs.Type)
+
+		if kind == "" || kind == "DEFAULT" {
+			indexs.Type = ALGO
+		}
+
+		// 設置表格的 Index
+		p.AddIndex("UNIQUE", indexs.Name, indexs.Type, indexs.Columns...)
+	}
+
+	for _, indexs = range config.Indexs {
+		kind = strings.ToUpper(indexs.Type)
+
+		if kind == "" || kind == "DEFAULT" {
+			indexs.Type = ALGO
+		}
+
+		// 設置表格的 Index
+		p.AddIndex("INDEX", indexs.Name, indexs.Type, indexs.Columns...)
+	}
+}
+
+func (p *TableParam) ParserConfig(config string) {
 	tpc, err := NewTableParamConfig(config)
 
 	if err != nil {
@@ -84,8 +106,6 @@ func (p *TableParam) ParserConfig(config string) {
 		// 設置表格的 Index
 		p.AddIndex("INDEX", indexs.Name, indexs.Type, indexs.Columns...)
 	}
-
-	// glog.Trace("gosql", "tpc: %+v\n", tpc)
 }
 
 func (p *TableParam) AddPrimaryKey(key string, indexType string) {
@@ -187,19 +207,12 @@ func (p *TableParam) operateIndexMap(source string, target string, op func(strin
 	var err error
 
 	for kind, indexs := range p.indexMap {
-		// glog.Trace("gosql", "kind: %s", kind)
-
 		for indexName, cols := range indexs {
-			// glog.Trace("gosql", "kind: %s, indexName: %s", kind, indexName)
-
 			err = op(kind, indexName, cols)
-
 			if err != nil {
-				gosql.Error("gosql", "Error: %+v", err)
+				fmt.Printf("(p *TableParam) operateIndexMap | Error: %+v", err)
 			}
 		}
-
-		// glog.Trace("gosql", "End kind: %s", kind)
 	}
 }
 
@@ -384,7 +397,7 @@ type ColumnParam struct {
 	// 欄位設置表
 	defineMap map[string]string
 
-	config *ColumnParamConfig
+	Config *ColumnParamConfig
 }
 
 // 改以 DefineMap 的形式暫存各個欄位的額外設定值，考慮'先後順序'與'設定值之間的相互牽制'，
@@ -394,22 +407,21 @@ func NewColumnParam(number int, name string, kind string, dial dialect.SQLDialec
 	param := &ColumnParam{
 		FieldNumber:  number,
 		Name:         name,
-		OriginType:   datatype.GetOriginType(kind),
 		Size:         0,
 		IsPrimaryKey: false,
 		IsUnsigned:   false,
 		CanNull:      false,
-		Default:      "NIL",
 		Update:       "",
 		Algo:         "",
 		Comment:      "",
 		IgnoreThis:   false,
 		dial:         dial,
 		defineMap:    map[string]string{},
-		config: &ColumnParamConfig{
-			Type: dialect.GetDialect(dial).ProtoTypeOf(kind),
-		},
+		Config:       &ColumnParamConfig{},
 	}
+
+	param.SetType(kind)
+	param.SetDefault(dialect.GetDialect(param.dial).GetDefault(param.Type))
 
 	// 根據 tag 內容對 Param 進行再定義
 	for _, tag := range tags {
@@ -418,16 +430,19 @@ func NewColumnParam(number int, name string, kind string, dial dialect.SQLDialec
 
 	// 根據 defineMap 對 Param 進行再定義
 	param.Redefine()
+	return param
+}
 
-	// MAP 與 MESSAGE 將以超長字串形式儲存
-	if param.OriginType == datatype.MAP || param.OriginType == datatype.MESSAGE {
-		// fmt.Printf("OriginType: %s, Type: %s\n", param.OriginType, param.Type)
-		if param.Size < 3000 {
-			param.Size = 3000
-		}
+func (p *ColumnParam) parserConfig(config string) {
+	// glog.Trace("gosql", "tag: %s", tag)
+	cfg, err := NewColumnParamConfig(config)
+
+	if err != nil {
+		// glog.Error("gosql", "Error: %+v", err)
+		return
 	}
 
-	return param
+	p.Config.merge(cfg)
 }
 
 func (p *ColumnParam) SetName(name string) {
@@ -437,6 +452,9 @@ func (p *ColumnParam) SetName(name string) {
 func (p *ColumnParam) SetType(dataType string) {
 	// 確保全大寫，以利設置欄位的預設大小
 	p.Type = strings.ToUpper(dataType)
+
+	// 儲存類型修正前的類型
+	p.OriginType = datatype.GetOriginType(p.Type)
 
 	// 根據實際使用的資料庫，對變數類型作修正
 	p.Type = dialect.GetDialect(p.dial).TypeOf(p.Type)
@@ -455,8 +473,6 @@ func (p *ColumnParam) SetPrimaryKey(algo string) {
 
 	if p.IsPrimaryKey {
 		p.IsPrimaryKey = true
-		// p.CanNull = false
-		// p.SetCanNull(p.CanNull)
 		p.Algo = strings.ToUpper(algo)
 
 		if p.Algo == "DEFAULT" {
@@ -475,36 +491,14 @@ func (p *ColumnParam) SetUnsigned(isUnsigned bool) {
 	p.IsUnsigned = isUnsigned
 }
 
-// func (p *ColumnParam) SetCanNull(canNull bool) {
-// 	if p.IsPrimaryKey {
-// 		canNull = false
-// 	}
-
-// 	p.CanNull = canNull
-
-// 	if p.CanNull {
-// 		switch p.Default {
-// 		case "NIL":
-// 			p.Default = "NULL"
-// 		}
-
-// 	} else {
-// 		// 此欄位不可是 NULL
-// 		switch p.Default {
-// 		case "NULL":
-// 			p.Default = "NIL"
-// 		}
-// 	}
-// }
-
 func (p *ColumnParam) SetDefault(defaultValue string) {
 	d := strings.ToUpper(defaultValue)
 
 	switch d {
-	case "NULL":
-		p.Default = "NIL"
+	case "NULL", "NIL":
+		p.Default = dialect.GetDialect(p.dial).GetDefault(p.Type)
 	// AI, NIL 都設置為大寫
-	case "AI", "NIL":
+	case "AI":
 		p.Default = d
 	// 其他則和設置值相同，不修改大小寫
 	default:
@@ -522,20 +516,10 @@ func (p *ColumnParam) SetComment(comment string) {
 	p.Comment = comment
 }
 
-func (p *ColumnParam) String() string {
-	return fmt.Sprintf("FieldNumber: %d, Type: %s, Name: %s", p.FieldNumber, p.Type, p.Name)
-}
-
-func (p *ColumnParam) parserConfig(config string) {
-	// glog.Trace("gosql", "tag: %s", tag)
-	cfg, err := NewColumnParamConfig(config)
-
-	if err != nil {
-		// glog.Error("gosql", "Error: %+v", err)
-		return
-	}
-
-	p.config.merge(cfg)
+// 以 Config 的形式暫存各個欄位的額外設定值，考慮'先後順序'與'設定值之間的相互牽制'，
+// 例如使用 AutoIncrement 的欄位要求必須是 PrimaryKey
+func (p *ColumnParam) LoadConfig(config *ColumnParamConfig) {
+	p.Config.merge(config)
 }
 
 // 根據 defineMap 對 Param 進行再定義
@@ -543,38 +527,30 @@ func (p *ColumnParam) Redefine() {
 	// var ok bool
 	var kind string
 
-	if strings.ToUpper(p.config.Ignore) == "TRUE" {
+	// ====================================================================================================
+	// 資料庫欄位忽略此欄位
+	// ====================================================================================================
+
+	if strings.ToUpper(p.Config.Ignore) == "TRUE" {
 		p.IgnoreThis = true
 		return
 	}
 
 	// ====================================================================================================
-	// comment
+	// Comment
 	// ====================================================================================================
 
-	if p.config.Comment != "" {
-		p.Comment = p.config.Comment
+	if p.Config.Comment != "" {
+		p.Comment = p.Config.Comment
 	}
 
 	// ====================================================================================================
-	// can_null: 取消可設置是否為空的彈性 2023/01/12
+	// Type
 	// ====================================================================================================
 
-	// if p.config.CanNull != "" {
-	// 	p.CanNull = strings.ToUpper(p.config.CanNull) == "TRUE"
-	// }
-
-	// if p.CanNull {
-	// 	p.Default = "NULL"
-	// }
-
-	// ====================================================================================================
-	// type
-	// ====================================================================================================
-
-	if p.config.Type != "" {
+	if p.Config.Type != "" {
 		// 確保全大寫，以利設置欄位的預設大小
-		p.Type = strings.ToUpper(p.config.Type)
+		p.Type = strings.ToUpper(p.Config.Type)
 	}
 
 	// 根據實際使用的資料庫，對變數類型作修正
@@ -588,8 +564,8 @@ func (p *ColumnParam) Redefine() {
 	// ====================================================================================================
 
 	// 僅允許 VARCHAR 設定 size
-	if p.config.Size > 0 && p.Type == datatype.VARCHAR {
-		p.Size = dialect.GetDialect(p.dial).SizeOf(p.Type, int32(p.config.Size))
+	if p.Config.Size > 0 && p.Type == datatype.VARCHAR {
+		p.Size = dialect.GetDialect(p.dial).SizeOf(p.Type, int32(p.Config.Size))
 
 	} else if p.OriginType == datatype.BOOL {
 		// bool 類型的數據，p.Type 會被轉換成 TINYINT，因此這裡針對 bool 類型的大小作額外處理
@@ -604,10 +580,10 @@ func (p *ColumnParam) Redefine() {
 	// unsigned
 	// ====================================================================================================
 
-	if p.config.Unsigned != "" {
+	if p.Config.Unsigned != "" {
 		// 數值類型才能設置 "是否沒有負數" 這項屬性
 		if kind == "INTEGER" || kind == "FLOAT" {
-			p.IsUnsigned = strings.ToUpper(p.config.Unsigned) == "TRUE"
+			p.IsUnsigned = strings.ToUpper(p.Config.Unsigned) == "TRUE"
 		}
 	}
 
@@ -615,29 +591,18 @@ func (p *ColumnParam) Redefine() {
 	// default
 	// ====================================================================================================
 
-	if p.config.Default != "" {
-		d := strings.ToUpper(p.config.Default)
-
-		switch d {
-		case "NULL":
-			p.Default = "NIL"
-		// AI, NIL 都設置為大寫
-		case "AI", "NIL":
-			p.Default = d
-		// 其他則和設置值相同，不修改大小寫
-		default:
-			p.Default = p.config.Default
-		}
+	if p.Config.Default != "" {
+		p.SetDefault(p.Config.Default)
 	}
 
 	// ====================================================================================================
 	// primary_key
 	// ====================================================================================================
 
-	if p.config.PrimaryKey != "" {
+	if p.Config.PrimaryKey != "" {
 		p.IsPrimaryKey = true
 		// p.CanNull = false
-		p.Algo = strings.ToUpper(p.config.PrimaryKey)
+		p.Algo = strings.ToUpper(p.Config.PrimaryKey)
 
 		if p.Algo == "DEFAULT" {
 			p.Algo = ALGO
@@ -645,29 +610,41 @@ func (p *ColumnParam) Redefine() {
 	} else {
 		// 確保非 Primary Key 欄位不會被設置成 Auto Increment
 		if p.Default == "AI" {
-			p.Default = "NIL"
+			p.Default = dialect.GetDialect(p.dial).GetDefault(p.Type)
 		}
 	}
 
 	// Default 欄位不可為 NULL
 	if p.Default == "NULL" {
-		p.Default = "NIL"
+		p.Default = dialect.GetDialect(p.dial).GetDefault(p.Type)
 	}
 
 	// ====================================================================================================
 	// update
 	// ====================================================================================================
 
-	if p.config.Update != "" {
+	if p.Config.Update != "" {
 		switch p.Default {
 		case "current_timestamp()":
-			p.Update = p.config.Update
+			p.Update = p.Config.Update
 		case "NIL", "NULL":
 			fallthrough
 		default:
 			p.Update = ""
 		}
 	}
+
+	// MAP 與 MESSAGE 將以超長字串形式儲存
+	if p.OriginType == datatype.MAP || p.OriginType == datatype.MESSAGE {
+		// fmt.Printf("OriginType: %s, Type: %s\n", param.OriginType, param.Type)
+		if p.Size < 3000 {
+			p.Size = 3000
+		}
+	}
+}
+
+func (p *ColumnParam) String() string {
+	return fmt.Sprintf("FieldNumber: %d, Type: %s, Name: %s", p.FieldNumber, p.Type, p.Name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -689,48 +666,4 @@ func (p *ColumnParamSlice) Swap(i int, j int) {
 
 func (p *ColumnParamSlice) Sort() {
 	sort.Sort(p)
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// 傳入的 kind 就應該是全大寫，減少重複轉換大小寫
-// NOTE: 參考 https://www.796t.com/content/1502096161.html
-func ProtoSize(kind string, size int32) int32 {
-	if size <= 0 {
-		switch kind {
-		// Protobuf variable
-		case "INT32":
-			size = 11
-		case "INT64":
-			size = 20
-		case "BOOL":
-			size = 1
-		// Maria variable
-		case "INT":
-			size = 11
-		case "VARCHAR":
-			size = 3000
-		case "CHAR":
-			size = 50
-		}
-	}
-
-	switch kind {
-	// ==================================================
-	// DB 本身有其預設值，無法自定義大小的類型，一律回傳 -1
-	case "TIMESTAMP":
-		fallthrough
-	case "DOUBLE":
-		fallthrough
-	case "TINYTEXT":
-		fallthrough
-	case "TEXT":
-		fallthrough
-	case "MEDIUMTEXT":
-		fallthrough
-	case "LONGTEXT":
-		return 0
-	// ==================================================
-	default:
-		return size
-	}
 }

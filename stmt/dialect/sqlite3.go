@@ -109,13 +109,8 @@ func (s *sqlite3) ProtoTypeOf(kind string) string {
 	panic(fmt.Sprintf("invalid sql type %s", kind))
 }
 
-func (s *sqlite3) DbToProto(kind string) string {
-	panic(fmt.Sprintf("invalid sql type %s", kind))
-}
-
-// 表格是否存在的 SQL 語法
-func (s *sqlite3) IsTableExistsStmt(tableName string) string {
-	return fmt.Sprintf("SELECT name FROM sqlite_master WHERE type='table' and name = '%s';", tableName)
+func (s *sqlite3) GetDefault(dataType string) string {
+	return ""
 }
 
 // 是否為數值類型

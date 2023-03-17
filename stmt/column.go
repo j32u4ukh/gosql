@@ -44,7 +44,7 @@ type Column struct {
 	Collate string
 
 	// 資料庫方言類型
-	dial dialect.SQLDialect
+	Dial dialect.SQLDialect
 
 	// 是否忽略此欄位(用於結構中有定義，但不希望成為資料表欄位時)
 	IgnoreThis bool
@@ -63,7 +63,7 @@ func NewColumn(param *ColumnParam) *Column {
 		Algo:         param.Algo,
 		Comment:      param.Comment,
 		Collate:      "",
-		dial:         param.dial,
+		Dial:         param.dial,
 		IgnoreThis:   param.IgnoreThis,
 	}
 
@@ -109,7 +109,7 @@ func NewDbColumn(name string, kind string, isPrimaryKey bool, canNull bool, _def
 	}
 	// ====================================================================================================
 
-	if dialect.GetDialect(column.dial).IsSortable(column.Type) {
+	if dialect.GetDialect(column.Dial).IsSortable(column.Type) {
 		column.Collate = collate
 	}
 
@@ -132,8 +132,8 @@ func (c *Column) SetPrimaryKey() {
 	c.IsPrimaryKey = true
 	c.CanNull = false
 
-	if c.Default == "NULL" {
-		c.Default = "NIL"
+	if c.Default == "" {
+		c.Default = dialect.GetDialect(c.Dial).GetDefault(c.Type)
 	}
 
 	if c.Algo == "" {
@@ -142,7 +142,7 @@ func (c *Column) SetPrimaryKey() {
 }
 
 func (c *Column) SetCollate(collate string) {
-	if dialect.GetDialect(c.dial).IsSortable(c.Type) {
+	if dialect.GetDialect(c.Dial).IsSortable(c.Type) {
 		c.Collate = collate
 	}
 }
@@ -162,11 +162,6 @@ func (c *Column) GetInfo() string {
 		result += " UNSIGNED"
 	}
 
-	// if c.CanNull && !c.IsPrimaryKey {
-	// 	result += " NULL"
-	// } else {
-	// 	result += " NOT NULL"
-	// }
 	result += " NOT NULL"
 
 	switch c.Default {
@@ -198,8 +193,6 @@ func (c *Column) GetInfo() string {
 		result += fmt.Sprintf(" COLLATE '%s'", c.Collate)
 	}
 
-	// glog.System("Database", "result: %s", result)
-
 	return result
 }
 
@@ -214,7 +207,6 @@ func (c *Column) IsEquals(other *Column) bool {
 	}
 
 	if c.GetInfo() != other.GetInfo() {
-		// glog.System("gosql", "Column infos are different.\nc.GetInfo(): %s\nother.GetInfo(): %s", c.GetInfo(), other.GetInfo())
 		return false
 	}
 

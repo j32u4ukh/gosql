@@ -148,22 +148,8 @@ func (s *mysql) ProtoTypeOf(kind string) string {
 	}
 }
 
-func (s *mysql) DbToProto(kind string) string {
-	switch kind {
-	case "INT":
-		return "int32"
-	case "BIGINT":
-		return "int64"
-	case "TINYINT":
-		return "bool"
-	default:
-		return "string"
-	}
-}
-
-// 表格是否存在的 SQL 語法
-func (s *mysql) IsTableExistsStmt(tableName string) string {
-	return fmt.Sprintf("SELECT table_name FROM information_schema.tables WHERE TABLE_NAME = '%s';", tableName)
+func (s *mysql) GetDefault(dataType string) string {
+	return ""
 }
 
 // 是否為數值類型

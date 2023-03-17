@@ -95,11 +95,7 @@ func (s *WhereStmt) Between(key string, value1 string, value2 string) *WhereStmt
 }
 
 func (s *WhereStmt) In(key string, values ...string) *WhereStmt {
-	strValues := []string{}
-	for _, value := range values {
-		strValues = append(strValues, value)
-	}
-	s.sql = fmt.Sprintf("`%s` IN (%s)", key, strings.Join(strValues, ", "))
+	s.sql = fmt.Sprintf("`%s` IN (%s)", key, strings.Join(values, ", "))
 	return s
 }
 
