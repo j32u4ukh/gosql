@@ -1,0 +1,37 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+# name: 是 workflows 的名稱
+name: Go
+
+# on: 是驅動 workflow 的事件，可以指定哪個 branch 才會驅動。
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# jobs: 是一連串的 steps 組成，可以擁有 1 ~ N 個 job。
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    
+    # steps: 可以運行命令(run)、執行 actions(uses)、設定參數(with)
+    steps:
+    # uses: 使用 github 上其他人寫好可 reuse 的 action
+    # ex: actions/checkout@v3 表示可以在一個名為 actions/checkout 的 repository 內找到。
+    # 進入該 repository，打開 action.yml 檔，可以看到具體內容，@ 後面是版本。
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      # with: 設定 use actions 的變數
+      with:
+        go-version: 1.19
+
+    - name: Build
+      # run: 就是執行 command
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
