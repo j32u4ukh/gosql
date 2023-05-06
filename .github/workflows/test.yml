@@ -6,10 +6,9 @@ name: Test
 # on: 是驅動 workflow 的事件，可以指定哪個 branch 才會驅動。
 on:
   push:
-    # 設置 "!/(main|develop)/"，在 push 到 main 或 develop 這兩個分支，不執行此 action
     branches:
-      - '*'
-      - "!/(main|develop)/"
+      # 匹配所有分支，但排除名為 master 和 develop 的分支，不執行此 action
+      - '!/(master|develop)/'
 
 # jobs: 是一連串的 steps 組成，可以擁有 1 ~ N 個 job。
 jobs:
