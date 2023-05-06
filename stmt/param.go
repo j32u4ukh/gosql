@@ -195,7 +195,7 @@ func (p *TableParam) operateIndexMap(source string, target string, op func(strin
 			err = op(kind, indexName, cols)
 
 			if err != nil {
-				gosql.Error("gosql", "Error: %+v", err)
+				gosql.Error("Error: %+v", err)
 			}
 		}
 
@@ -251,12 +251,12 @@ func (p *TableParam) GetIndexColumns(kind string, indexName string) *cntr.Array[
 	var ok bool
 
 	if im, ok = p.indexMap[kind]; !ok {
-		gosql.Error("gosql", fmt.Sprintf("There is no type %s in indexMap.", kind))
+		gosql.Error(fmt.Sprintf("There is no type %s in indexMap.", kind))
 		return nil
 	}
 
 	if _, ok := im[indexName]; !ok {
-		gosql.Error("gosql", fmt.Sprintf("There is no indexName %s in indexMap[%s].", indexName, kind))
+		gosql.Error(fmt.Sprintf("There is no indexName %s in indexMap[%s].", indexName, kind))
 		return nil
 	}
 
