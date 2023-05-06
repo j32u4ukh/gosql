@@ -69,7 +69,7 @@ func (s *CreateStmt) SetTableParam(tableParam *TableParam) {
 		}
 
 		if !ok {
-			gosql.Error("gosql", "Column %s should not in tableParam.", name)
+			gosql.Error("Column %s should not in tableParam.", name)
 		}
 	}
 
