@@ -6,9 +6,11 @@ name: Go
 # on: 是驅動 workflow 的事件，可以指定哪個 branch 才會驅動。
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - '*'
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - "main"
 
 # jobs: 是一連串的 steps 組成，可以擁有 1 ~ N 個 job。
 jobs:
