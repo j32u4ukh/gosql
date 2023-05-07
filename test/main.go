@@ -25,14 +25,15 @@ func InitWebsitesTable() (table *gdo.Table) {
 	// 	fmt.Printf("%d) %+v\n", i, col)
 	// }
 	table = gdo.NewTable("Websites", tableParams, colParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	// fmt.Printf("%+v\n", table)
 	return table
 }
 
+// SELECT DISTINCT `country` FROM `Websites`;
 func main() {
 	table := InitWebsitesTable()
-	fmt.Printf("%+v\n", table)
-	// SELECT name,country FROM Websites;
-	table.Query("name", "country")
+	table.SetQueryMode(stmt.DistinctSelect)
+	table.Query("country")
 	sql, err := table.BuildSelectStmt()
 	if err != nil {
 		return

@@ -258,11 +258,11 @@ func FormatColumns(columns []string, mode byte) (string, error) {
 	case 1:
 		switch mode {
 		case DistinctSelect:
-			return fmt.Sprintf("DISTINCT(%s)", columns[0]), nil
+			return fmt.Sprintf("DISTINCT `%s`", columns[0]), nil
 		case CountSelect:
-			return fmt.Sprintf("COUNT(%s)", columns[0]), nil
+			return fmt.Sprintf("COUNT(`%s`)", columns[0]), nil
 		case CountDistinctSelect:
-			return fmt.Sprintf("COUNT(DISTINCT(%s))", columns[0]), nil
+			return fmt.Sprintf("COUNT(DISTINCT `%s`)", columns[0]), nil
 		case NormalSelect:
 			fallthrough
 		default:
@@ -276,11 +276,11 @@ func FormatColumns(columns []string, mode byte) (string, error) {
 		result := strings.Join(temps, ", ")
 		switch mode {
 		case DistinctSelect:
-			return fmt.Sprintf("DISTINCT(%s)", result), nil
+			return fmt.Sprintf("DISTINCT %s", result), nil
 		case CountSelect:
 			return fmt.Sprintf("COUNT(%s)", result), nil
 		case CountDistinctSelect:
-			return fmt.Sprintf("COUNT(DISTINCT(%s))", result), nil
+			return fmt.Sprintf("COUNT(DISTINCT %s)", result), nil
 		case NormalSelect:
 			fallthrough
 		default:
