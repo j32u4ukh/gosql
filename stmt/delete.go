@@ -10,13 +10,16 @@ type DeleteStmt struct {
 	DbName string
 	Name   string
 	Where  *WhereStmt
+	// 是否允許不設置 Where 條件? 若不設置會 刪除資料表中所有的資料，需額外允許才有作用
+	allowEmptyWhere bool
 }
 
 func NewDeleteStmt(name string) *DeleteStmt {
 	s := &DeleteStmt{
-		DbName: "",
-		Name:   name,
-		Where:  &WhereStmt{},
+		DbName:          "",
+		Name:            name,
+		Where:           &WhereStmt{},
+		allowEmptyWhere: false,
 	}
 	return s
 }
@@ -31,33 +34,40 @@ func (s *DeleteStmt) SetCondition(where *WhereStmt) *DeleteStmt {
 	return s
 }
 
+func (s *DeleteStmt) AllowEmptyWhere() *DeleteStmt {
+	s.allowEmptyWhere = true
+	return s
+}
+
 func (s *DeleteStmt) Release() *DeleteStmt {
 	s.Where.Release()
+	s.allowEmptyWhere = false
 	return s
 }
 
 func (s *DeleteStmt) ToStmt() (string, error) {
-	// DELETE FROM `demo`.`dartnotification` WHERE (`id` = '1665154635370141');
-	// 一次刪除某資料表中所有的資料：DELETE FROM table_name; | DELETE * FROM table_name;
-	where, err := s.Where.ToStmt()
+	var where, tableName string
+	var err error
+	if s.allowEmptyWhere {
+		where = ""
+	} else {
+		where, err = s.Where.ToStmt()
 
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to generate where statement.")
-	}
+		if err != nil {
+			return "", errors.Wrapf(err, "Failed to create where statment.")
+		}
 
-	// 檢查 where 是否為空，否則就會形成 刪除資料表中所有的資料 的語法
-	if where != "" {
+		if where == "" {
+			return "", errors.New("Where condtion 為空")
+		}
+
 		where = fmt.Sprintf(" WHERE %s", where)
 	}
-
-	var tableName string
-
 	if s.DbName != "" {
 		tableName = fmt.Sprintf("`%s`.`%s`", s.DbName, s.Name)
 	} else {
 		tableName = fmt.Sprintf("`%s`", s.Name)
 	}
-
 	sql := fmt.Sprintf("DELETE FROM %s%s;", tableName, where)
 	return sql, nil
 }

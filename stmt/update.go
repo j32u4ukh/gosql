@@ -16,14 +16,17 @@ type UpdateStmt struct {
 	TableName string
 	datas     []string
 	Where     *WhereStmt
+	// 是否允許不設置 Where 條件? 若不設置會造成全部數據都被修改，需額外允許才有作用
+	allowEmptyWhere bool
 }
 
 func NewUpdateStmt(tableName string) *UpdateStmt {
 	s := &UpdateStmt{
-		DbName:    "",
-		TableName: tableName,
-		datas:     []string{},
-		Where:     nil,
+		DbName:          "",
+		TableName:       tableName,
+		datas:           []string{},
+		Where:           &WhereStmt{},
+		allowEmptyWhere: false,
 	}
 	return s
 }
@@ -44,9 +47,15 @@ func (s *UpdateStmt) SetCondition(where *WhereStmt) *UpdateStmt {
 	return s
 }
 
+func (s *UpdateStmt) AllowEmptyWhere() *UpdateStmt {
+	s.allowEmptyWhere = true
+	return s
+}
+
 func (s *UpdateStmt) Release() {
 	s.datas = s.datas[:0]
-	s.Where = nil
+	s.Where.Release()
+	s.allowEmptyWhere = false
 }
 
 /*
@@ -61,17 +70,20 @@ func (s *UpdateStmt) ToStmt() (string, error) {
 		return "", errors.New("Update data is empty.")
 	}
 
-	if s.Where == nil {
-		return "", errors.New("Where condition is nil.")
+	var where, tableName string
+	var err error
+
+	if s.allowEmptyWhere {
+		where = ""
+	} else {
+		where, err = s.Where.ToStmt()
+
+		if err != nil || where == "" {
+			return "", errors.Wrapf(err, "Failed to create where statment.")
+		}
+
+		where = fmt.Sprintf(" WHERE %s", where)
 	}
-
-	where, err := s.Where.ToStmt()
-
-	if err != nil || where == "" {
-		return "", errors.Wrapf(err, "Failed to create where statment.")
-	}
-
-	var tableName string
 
 	if s.DbName != "" {
 		tableName = fmt.Sprintf("`%s`.`%s`", s.DbName, s.TableName)
@@ -79,7 +91,7 @@ func (s *UpdateStmt) ToStmt() (string, error) {
 		tableName = fmt.Sprintf("`%s`", s.TableName)
 	}
 
-	sql := fmt.Sprintf("UPDATE %s SET %s WHERE %s;", tableName, strings.Join(s.datas, ", "), where)
+	sql := fmt.Sprintf("UPDATE %s SET %s%s;", tableName, strings.Join(s.datas, ", "), where)
 	return sql, nil
 }
 

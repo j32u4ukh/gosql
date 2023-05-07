@@ -208,3 +208,85 @@ func TestRunoobInsert1(t *testing.T) {
 		}
 	}
 }
+
+func TestRunoobUpdate1(t *testing.T) {
+	answer := "UPDATE `Websites` SET `alexa` = 5000, `country` = 'USA' WHERE `name` = 'ABC';"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	table.Update("alexa", 5000, nil)
+	table.Update("country", "USA", nil)
+	where := gdo.WS().Eq("name", "ABC")
+	table.SetUpdateCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildUpdateStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobUpdate1 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobUpdate1 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobUpdate2(t *testing.T) {
+	answer := "UPDATE `Websites` SET `alexa` = 5000, `country` = 'USA';"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	table.Update("alexa", 5000, nil)
+	table.Update("country", "USA", nil)
+	table.AllowEmptyUpdateCondition()
+	//////////////////////////////////////////////////
+	sql, err := table.BuildUpdateStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobUpdate2 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobUpdate2 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobDelete1(t *testing.T) {
+	answer := "DELETE FROM `Websites` WHERE `name` = 'Facebook' AND `country` = 'USA';"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	where := gdo.WS().AddAndCondtion(gdo.WS().Eq("name", "Facebook")).AddAndCondtion(gdo.WS().Eq("country", "USA"))
+	table.SetDeleteCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildDeleteStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobDelete1 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobDelete1 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobDelete2(t *testing.T) {
+	answer := "DELETE FROM `Websites`;"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	table.AllowEmptyDeleteCondition()
+	//////////////////////////////////////////////////
+	sql, err := table.BuildDeleteStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobDelete2 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobDelete2 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}

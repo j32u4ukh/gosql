@@ -32,23 +32,19 @@ func InitWebsitesTable() (table *gdo.Table) {
 
 /*
 
-INSERT INTO Websites (name, url, alexa, country)
-VALUES ('百度','https://www.baidu.com/','4','CN');
+DELETE FROM Websites
+WHERE name='Facebook' AND country='USA';
 
 */
 
 func main() {
 	table := InitWebsitesTable()
 	//////////////////////////////////////////////////
-	err := table.Insert([]any{"NULL", "百度", "https://www.baidu.com/", 4, "CN"}, nil)
-	if err != nil {
-		fmt.Printf("Insert err: %+v\n", err)
-		return
-	}
+	table.AllowEmptyDeleteCondition()
 	//////////////////////////////////////////////////
-	sql, err := table.BuildInsertStmt()
+	sql, err := table.BuildDeleteStmt()
 	if err != nil {
-		fmt.Printf("BuildInsertStmt err: %+v\n", err)
+		fmt.Printf("BuildDeleteStmt err: %+v\n", err)
 		return
 	}
 	fmt.Printf("sql: %s\n", sql)
