@@ -74,6 +74,21 @@ func (s *SelectStmt) WhetherReverseOrder(reverse bool) *SelectStmt {
 	return s
 }
 
+/*
+MySQL 支持 LIMIT 語句來選取指定的條數數據， Oracle 可以使用 ROWNUM 來選取。SQL Server / MS Access 則使用 SELECT TOP 語句來達到此效果。
+
+TODO: 目前尚無法支援 SQL Server / MS Access
+> SQL Server / MS Access 語法
+
+SELECT TOP number|percent column_name(s)
+FROM table_name;
+
+> MySQL 語法
+
+SELECT column_name(s)
+FROM table_name
+LIMIT number;
+*/
 func (s *SelectStmt) SetLimit(limit int32) *SelectStmt {
 	s.Limit = limit
 	return s

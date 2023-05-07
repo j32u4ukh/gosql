@@ -186,6 +186,66 @@ func TestRunoobSelect9(t *testing.T) {
 	}
 }
 
+func TestRunoobSelect10(t *testing.T) {
+	answer := "SELECT * FROM `Websites` WHERE `name` LIKE 'G%';"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	where := gdo.WS().Like("name", "G%")
+	table.SetSelectCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect10 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect10 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobSelect11(t *testing.T) {
+	answer := "SELECT * FROM `Websites` WHERE NOT (`name` LIKE '%oo%');"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	where := gdo.WS().Like("name", "%oo%").SetNotCondition()
+	table.SetSelectCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect11 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect11 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobSelect12(t *testing.T) {
+	answer := "SELECT * FROM `Websites` WHERE `name` REGEXP '^[GFs]';"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	where := gdo.WS().Regexp("name", "^[GFs]")
+	table.SetSelectCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect12 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect12 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
 func TestRunoobInsert1(t *testing.T) {
 	answer := "INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES (NULL, '百度', 'https://www.baidu.com/', 4, 'CN');"
 	table := InitWebsitesTable()

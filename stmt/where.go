@@ -89,6 +89,11 @@ func (s *WhereStmt) Like(key string, format string) *WhereStmt {
 	return s
 }
 
+func (s *WhereStmt) Regexp(key string, format string) *WhereStmt {
+	s.sql = fmt.Sprintf("`%s` REGEXP '%s'", key, format)
+	return s
+}
+
 func (s *WhereStmt) Between(key string, value1 string, value2 string) *WhereStmt {
 	s.sql = fmt.Sprintf("`%s` BETWEEN %s AND %s", key, value1, value2)
 	return s

@@ -92,8 +92,14 @@ func (s *WhereStmt) Lt(key string, value any) *WhereStmt {
 	return s
 }
 
-func (s *WhereStmt) Like(key string, format any) *WhereStmt {
+func (s *WhereStmt) Like(key string, format string) *WhereStmt {
 	s.op = "Like"
+	s.values = []any{key, format}
+	return s
+}
+
+func (s *WhereStmt) Regexp(key string, format string) *WhereStmt {
+	s.op = "Regexp"
 	s.values = []any{key, format}
 	return s
 }
@@ -107,9 +113,7 @@ func (s *WhereStmt) Between(key string, value1 any, value2 any) *WhereStmt {
 func (s *WhereStmt) In(key string, values ...any) *WhereStmt {
 	s.op = "In"
 	s.values = []any{key}
-	for _, value := range values {
-		s.values = append(s.values, value)
-	}
+	s.values = append(s.values, values...)
 	return s
 }
 
@@ -155,7 +159,9 @@ func (s *WhereStmt) ToStmtWhere() *stmt.WhereStmt {
 			s.WhereStmt.Lt(key, s.valueToDbFunc(reflect.ValueOf(s.values[1]), s.useAntiInjection, nil))
 		case "Like":
 			// TODO: LIKE 的檢查應該和一般參數不同，應使用其他方式檢查
-			s.WhereStmt.Like(key, s.valueToDbFunc(reflect.ValueOf(s.values[1]), s.useAntiInjection, nil))
+			s.WhereStmt.Like(key, s.values[1].(string))
+		case "Regexp":
+			s.WhereStmt.Regexp(key, s.values[1].(string))
 		case "Between":
 			s.WhereStmt.Between(key,
 				s.valueToDbFunc(reflect.ValueOf(s.values[1]), s.useAntiInjection, nil),

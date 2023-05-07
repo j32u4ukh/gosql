@@ -31,20 +31,19 @@ func InitWebsitesTable() (table *gdo.Table) {
 }
 
 /*
-
-DELETE FROM Websites
-WHERE name='Facebook' AND country='USA';
-
+SELECT * FROM Websites
+WHERE name REGEXP '^[GFs]';
 */
 
 func main() {
 	table := InitWebsitesTable()
 	//////////////////////////////////////////////////
-	table.AllowEmptyDeleteCondition()
+	where := gdo.WS().Regexp("name", "^[GFs]")
+	table.SetSelectCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildDeleteStmt()
+	sql, err := table.BuildSelectStmt()
 	if err != nil {
-		fmt.Printf("BuildDeleteStmt err: %+v\n", err)
+		fmt.Printf("BuildSelectStmt err: %+v\n", err)
 		return
 	}
 	fmt.Printf("sql: %s\n", sql)
