@@ -39,7 +39,7 @@ ORDER BY alexa;
 func main() {
 	table := InitWebsitesTable()
 	//////////////////////////////////////////////////
-	table.SetOrderBy("alexa")
+	table.SetOrderBy("country", "alexa")
 	//////////////////////////////////////////////////
 	sql, err := table.BuildSelectStmt()
 	if err != nil {

@@ -149,7 +149,7 @@ func TestRunoobSelect7(t *testing.T) {
 }
 
 func TestRunoobSelect8(t *testing.T) {
-	answer := "SELECT * FROM `Websites` ORDER BY `alexa` ASC;"
+	answer := "SELECT * FROM `Websites` ORDER BY `alexa`;"
 	table := InitWebsitesTable()
 	//////////////////////////////////////////////////
 	table.SetOrderBy("alexa")
@@ -163,6 +163,25 @@ func TestRunoobSelect8(t *testing.T) {
 
 		if sql != answer {
 			t.Errorf("TestRunoobSelect8 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobSelect9(t *testing.T) {
+	answer := "SELECT * FROM `Websites` ORDER BY `country`, `alexa`;"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	table.SetOrderBy("country", "alexa")
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect9 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect9 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }

@@ -2,6 +2,7 @@ package stmt
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -13,7 +14,7 @@ type SelectStmt struct {
 	QueryColumns []string
 	// 查詢的篩選機制
 	Where      *WhereStmt
-	OrderBy    string
+	OrderBy    []string
 	OrderType  string
 	Limit      int32
 	Offset     int32
@@ -26,8 +27,8 @@ func NewSelectStmt(tableName string) *SelectStmt {
 		TableName:    tableName,
 		QueryColumns: []string{},
 		Where:        &WhereStmt{},
-		OrderBy:      "",
-		OrderType:    "ASC",
+		OrderBy:      nil,
+		OrderType:    "",
 		Limit:        -1,
 		Offset:       0,
 		selectMode:   NormalSelect,
@@ -55,8 +56,11 @@ func (s *SelectStmt) SetCondition(where *WhereStmt) *SelectStmt {
 	return s
 }
 
-func (s *SelectStmt) SetOrderBy(column string) *SelectStmt {
-	s.OrderBy = column
+func (s *SelectStmt) SetOrderBy(columns ...string) *SelectStmt {
+	if s.OrderBy == nil {
+		s.OrderBy = []string{}
+	}
+	s.OrderBy = append(s.OrderBy, columns...)
 	return s
 }
 
@@ -83,7 +87,7 @@ func (s *SelectStmt) SetOffset(offset int32) *SelectStmt {
 func (s *SelectStmt) Release() {
 	s.QueryColumns = []string{}
 	s.Where.Release()
-	s.OrderBy = ""
+	s.OrderBy = nil
 	s.OrderType = "ASC"
 	s.Limit = -1
 	s.Offset = 0
@@ -109,10 +113,18 @@ func (s *SelectStmt) ToStmt() (string, error) {
 	var order string
 	var limitOffset string
 
-	if s.OrderBy == "" {
+	if s.OrderBy == nil {
 		order = ""
 	} else {
-		order = fmt.Sprintf(" ORDER BY `%s` %s", s.OrderBy, s.OrderType)
+		orderColumns := []string{}
+		for _, col := range s.OrderBy {
+			orderColumns = append(orderColumns, fmt.Sprintf("`%s`", col))
+		}
+		order = fmt.Sprintf(" ORDER BY %s", strings.Join(orderColumns, ", "))
+
+		if s.OrderType != "" {
+			order = fmt.Sprintf("%s %s", order, s.OrderType)
+		}
 	}
 
 	if s.Limit == -1 {
