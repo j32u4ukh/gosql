@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"fmt"
@@ -9,8 +9,25 @@ import (
 	"github.com/j32u4ukh/gosql/stmt/dialect"
 )
 
-// runoob
-func InitWebsitesTable() (table *gdo.Table) {
+func InitTable() *gdo.Table {
+	tableName := "StmtDesk"
+	tableParam := stmt.NewTableParam()
+
+	// NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string, dial string)
+	table := gdo.NewTable(tableName, tableParam, nil, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	table.SetDbName("demo2")
+	table.UseAntiInjection(true)
+	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
+	col1.SetPrimaryKey("default")
+	table.AddColumn(stmt.NewColumn(col1))
+
+	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
+	// col2.SetCanNull(true)
+	table.AddColumn(stmt.NewColumn(col2))
+	return table
+}
+
+func InitWebsitesTable() *gdo.Table {
 	tableParams := stmt.NewTableParam()
 	fmt.Printf("tableParams: %v\n", tableParams)
 	colParam0 := stmt.NewColumnParam(0, "id", datatype.INT, dialect.MARIA)
@@ -24,18 +41,6 @@ func InitWebsitesTable() (table *gdo.Table) {
 	// for i, col := range colParams {
 	// 	fmt.Printf("%d) %+v\n", i, col)
 	// }
-	table = gdo.NewTable("Websites", tableParams, colParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	table := gdo.NewTable("Websites", tableParams, colParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
 	return table
-}
-
-func main() {
-	table := InitWebsitesTable()
-	fmt.Printf("%+v\n", table)
-	// SELECT name,country FROM Websites;
-	table.Query("name", "country")
-	sql, err := table.BuildSelectStmt()
-	if err != nil {
-		return
-	}
-	fmt.Printf("sql: %s\n", sql)
 }

@@ -246,6 +246,10 @@ func FormatColumns(columns []string) string {
 	case 1:
 		return columns[0]
 	default:
-		return strings.Join(columns, ", ")
+		temps := []string{}
+		for _, column := range columns {
+			temps = append(temps, fmt.Sprintf("`%s`", column))
+		}
+		return strings.Join(temps, ", ")
 	}
 }

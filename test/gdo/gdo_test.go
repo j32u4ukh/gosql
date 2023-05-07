@@ -6,9 +6,6 @@ import (
 
 	"github.com/j32u4ukh/gosql/gdo"
 	"github.com/j32u4ukh/gosql/proto"
-	"github.com/j32u4ukh/gosql/stmt"
-	"github.com/j32u4ukh/gosql/stmt/datatype"
-	"github.com/j32u4ukh/gosql/stmt/dialect"
 )
 
 func TestWhere1(t *testing.T) {
@@ -50,24 +47,6 @@ func TestWhere2(t *testing.T) {
 			t.Errorf("TestWhere2 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
-}
-
-func InitTable() *gdo.Table {
-	tableName := "StmtDesk"
-	tableParam := stmt.NewTableParam()
-
-	// NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string, dial string)
-	table := gdo.NewTable(tableName, tableParam, nil, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
-	table.SetDbName("demo2")
-	table.UseAntiInjection(true)
-	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
-	col1.SetPrimaryKey("default")
-	table.AddColumn(stmt.NewColumn(col1))
-
-	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	// col2.SetCanNull(true)
-	table.AddColumn(stmt.NewColumn(col2))
-	return table
 }
 
 func TestTableCreate(t *testing.T) {

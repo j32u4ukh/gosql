@@ -459,7 +459,7 @@ func (p *ColumnParam) SetType(dataType datatype.DataType) {
 	p.SetSize(p.Size)
 }
 
-// 根據 Type 、當前的 Size 以及 DB 本身的限制，對數值大小再定義
+// 根據 Type、當前的 Size 以及 DB 本身的限制，對數值大小再定義
 func (p *ColumnParam) SetSize(size int32) {
 	p.Size = dialect.GetDialect(p.dial).SizeOf(p.Type, p.Size)
 }

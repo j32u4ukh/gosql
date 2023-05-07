@@ -95,15 +95,14 @@ func TestSelectStmt2(t *testing.T) {
 }
 
 func TestSelectStmt3(t *testing.T) {
-	answer := "SELECT Name, Phone FROM `customers` WHERE `City` = '台北市' AND `Salary` >= 50000;"
+	answer := "SELECT `Name`, `Phone` FROM `customers` WHERE `City` = '台北市' AND `Salary` >= 50000;"
 	where := stmt.WS().
 		AddAndCondtion(stmt.WS().Eq("City", "'台北市'")).
 		AddAndCondtion(stmt.WS().Ge("Salary", "50000"))
 
 	sql, err := stmt.
 		NewSelectStmt("customers").
-		Query("Name").
-		Query("Phone").
+		Query("Name", "Phone").
 		SetCondition(where).
 		ToStmt()
 
@@ -119,7 +118,7 @@ func TestSelectStmt3(t *testing.T) {
 }
 
 func TestSelectStmt4(t *testing.T) {
-	answer := "SELECT Name, Phone FROM `customers` WHERE `Name` = 'Sam' OR (`City` = '台北市' AND `Salary` >= 50000);"
+	answer := "SELECT `Name`, `Phone` FROM `customers` WHERE `Name` = 'Sam' OR (`City` = '台北市' AND `Salary` >= 50000);"
 
 	where := stmt.WS().
 		AddOrCondtion(stmt.WS().Eq("Name", "'Sam'")).
@@ -130,8 +129,7 @@ func TestSelectStmt4(t *testing.T) {
 
 	sql, err := stmt.
 		NewSelectStmt("customers").
-		Query("Name").
-		Query("Phone").
+		Query("Name", "Phone").
 		SetCondition(where).
 		ToStmt()
 

@@ -38,8 +38,8 @@ func (s *SelectStmt) SetDbName(name string) *SelectStmt {
 	return s
 }
 
-func (s *SelectStmt) Query(column string) *SelectStmt {
-	s.QueryColumns = append(s.QueryColumns, column)
+func (s *SelectStmt) Query(columns ...string) *SelectStmt {
+	s.QueryColumns = append(s.QueryColumns, columns...)
 	return s
 }
 
