@@ -7,6 +7,7 @@ import (
 
 	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/pkg/errors"
 )
 
 type Column struct {
@@ -237,19 +238,53 @@ func (c *Column) Clone() *Column {
 	return clone
 }
 
-func FormatColumns(columns []string) string {
+func FormatColumns(columns []string, mode byte) (string, error) {
 	length := len(columns)
 
 	switch length {
 	case 0:
-		return "*"
+		switch mode {
+		case DistinctSelect:
+			return "", errors.New("You need to specify the columns when using DISTINCT.")
+		case CountSelect:
+			return "COUNT(*)", nil
+		case CountDistinctSelect:
+			return "", errors.New("You need to specify the columns when using DISTINCT.")
+		case NormalSelect:
+			fallthrough
+		default:
+			return "*", nil
+		}
 	case 1:
-		return columns[0]
+		switch mode {
+		case DistinctSelect:
+			return fmt.Sprintf("DISTINCT(%s)", columns[0]), nil
+		case CountSelect:
+			return fmt.Sprintf("COUNT(%s)", columns[0]), nil
+		case CountDistinctSelect:
+			return fmt.Sprintf("COUNT(DISTINCT(%s))", columns[0]), nil
+		case NormalSelect:
+			fallthrough
+		default:
+			return columns[0], nil
+		}
 	default:
 		temps := []string{}
 		for _, column := range columns {
 			temps = append(temps, fmt.Sprintf("`%s`", column))
 		}
-		return strings.Join(temps, ", ")
+		result := strings.Join(temps, ", ")
+		switch mode {
+		case DistinctSelect:
+			return fmt.Sprintf("DISTINCT(%s)", result), nil
+		case CountSelect:
+			return fmt.Sprintf("COUNT(%s)", result), nil
+		case CountDistinctSelect:
+			return fmt.Sprintf("COUNT(DISTINCT(%s))", result), nil
+		case NormalSelect:
+			fallthrough
+		default:
+			return result, nil
+		}
 	}
 }

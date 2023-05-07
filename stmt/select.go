@@ -12,11 +12,12 @@ type SelectStmt struct {
 	// 要查詢的欄位名稱列表
 	QueryColumns []string
 	// 查詢的篩選機制
-	Where     *WhereStmt
-	OrderBy   string
-	OrderType string
-	Limit     int32
-	Offset    int32
+	Where      *WhereStmt
+	OrderBy    string
+	OrderType  string
+	Limit      int32
+	Offset     int32
+	selectMode byte
 }
 
 func NewSelectStmt(tableName string) *SelectStmt {
@@ -29,6 +30,7 @@ func NewSelectStmt(tableName string) *SelectStmt {
 		OrderType:    "ASC",
 		Limit:        -1,
 		Offset:       0,
+		selectMode:   NormalSelect,
 	}
 	return s
 }
@@ -38,14 +40,13 @@ func (s *SelectStmt) SetDbName(name string) *SelectStmt {
 	return s
 }
 
-func (s *SelectStmt) Query(columns ...string) *SelectStmt {
-	s.QueryColumns = append(s.QueryColumns, columns...)
+func (s *SelectStmt) SetQueryMode(mode byte) *SelectStmt {
+	s.selectMode = mode
 	return s
 }
 
-// 利用原本 Columns 的機制，直接形成 SELECT COUNT(*) 的 SQL 語法
-func (s *SelectStmt) CountMode() *SelectStmt {
-	s.QueryColumns = append(s.QueryColumns, "COUNT(*)")
+func (s *SelectStmt) Query(columns ...string) *SelectStmt {
+	s.QueryColumns = append(s.QueryColumns, columns...)
 	return s
 }
 
@@ -89,7 +90,12 @@ func (s *SelectStmt) Release() {
 }
 
 func (s *SelectStmt) ToStmt() (string, error) {
-	formatColumns := FormatColumns(s.QueryColumns)
+	formatColumns, err := FormatColumns(s.QueryColumns, s.selectMode)
+
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to format columns.")
+	}
+
 	where, err := s.Where.ToStmt()
 
 	if err != nil {

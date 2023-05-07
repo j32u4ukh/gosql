@@ -5,6 +5,7 @@ import (
 
 	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/gdo"
+	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -55,7 +56,7 @@ func (t *ProtoTable) parseSelectResult(pm protoreflect.ProtoMessage, result []st
 
 // 取得符合 WhereStmt 條件的數據筆數
 func (t *ProtoTable) CountStmt(where *gdo.WhereStmt) string {
-	t.CountMode()
+	t.SetQueryMode(stmt.CountSelect)
 	sql, err := t.BuildSelectStmt(where)
 	if err != nil {
 		return ""
