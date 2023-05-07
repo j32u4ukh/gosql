@@ -246,6 +246,107 @@ func TestRunoobSelect12(t *testing.T) {
 	}
 }
 
+func TestRunoobSelect13(t *testing.T) {
+	answer := "SELECT * FROM `Websites` WHERE `name` IN ('Google', 'Apple');"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	where := gdo.WS().In("name", "Google", "Apple")
+	table.SetSelectCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect13 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect13 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobSelect14(t *testing.T) {
+	answer := "SELECT * FROM `Websites` WHERE `alexa` BETWEEN 1 AND 20;"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	where := gdo.WS().Between("alexa", 1, 20)
+	table.SetSelectCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect14 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect14 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobSelect15(t *testing.T) {
+	answer := "SELECT * FROM `Websites` WHERE NOT (`alexa` BETWEEN 1 AND 20);"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	where := gdo.WS().Between("alexa", 1, 20).SetNotCondition()
+	table.SetSelectCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect15 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect15 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobSelect16(t *testing.T) {
+	answer := "SELECT * FROM `Websites` WHERE (`alexa` BETWEEN 1 AND 20) AND (`country` IN ('USA', 'IND'));"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	cond1 := gdo.WS().Between("alexa", 1, 20).SetBrackets()
+	cond2 := gdo.WS().In("country", "USA", "IND").SetNotCondition().SetBrackets()
+	where := gdo.WS().AddAndCondtion(cond1).AddAndCondtion(cond2)
+	table.SetSelectCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect16 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect16 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobSelect17(t *testing.T) {
+	answer := "SELECT * FROM `Websites` WHERE `name` BETWEEN 'A' AND 'H';"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	where := gdo.WS().Between("name", "A", "H")
+	table.SetSelectCondition(where)
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect17 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect17 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
 func TestRunoobInsert1(t *testing.T) {
 	answer := "INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES (NULL, '百度', 'https://www.baidu.com/', 4, 'CN');"
 	table := InitWebsitesTable()

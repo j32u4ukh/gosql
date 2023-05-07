@@ -32,13 +32,13 @@ func InitWebsitesTable() (table *gdo.Table) {
 
 /*
 SELECT * FROM Websites
-WHERE name REGEXP '^[GFs]';
+WHERE name BETWEEN 'A' AND 'H';
 */
 
 func main() {
 	table := InitWebsitesTable()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Regexp("name", "^[GFs]")
+	where := gdo.WS().Between("name", "A", "H")
 	table.SetSelectCondition(where)
 	//////////////////////////////////////////////////
 	sql, err := table.BuildSelectStmt()
