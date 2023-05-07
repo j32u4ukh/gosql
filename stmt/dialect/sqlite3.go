@@ -13,7 +13,7 @@ func init() {
 }
 
 // 變數類型，轉為 SQL 中的變數類型
-func (s *sqlite3) TypeOf(dataType string) string {
+func (s *sqlite3) TypeOf(dataType datatype.DataType) datatype.DataType {
 	switch dataType {
 	case datatype.TINYINT:
 		fallthrough
@@ -59,7 +59,7 @@ func (s *sqlite3) TypeOf(dataType string) string {
 }
 
 // 根據 dataType 、當前的 size 以及 DB 本身的限制，對數值大小再定義
-func (s *sqlite3) SizeOf(dataType string, size int32) int32 {
+func (s *sqlite3) SizeOf(dataType datatype.DataType, size int32) int32 {
 	switch dataType {
 	case datatype.TINYINT:
 		fallthrough
@@ -104,21 +104,16 @@ func (s *sqlite3) SizeOf(dataType string, size int32) int32 {
 	}
 }
 
-// Protobuf 中的變數類型，轉為 SQL 中的變數類型
-func (s *sqlite3) ProtoTypeOf(kind string) string {
-	panic(fmt.Sprintf("invalid sql type %s", kind))
-}
-
-func (s *sqlite3) GetDefault(dataType string) string {
+func (s *sqlite3) GetDefault(dataType datatype.DataType) string {
 	return ""
 }
 
 // 是否為數值類型
-func (s *sqlite3) IsSortable(kind string) bool {
+func (s *sqlite3) IsSortable(kind datatype.DataType) bool {
 	return false
 }
 
 // 判斷變數類型(integer, float, text, ...)
-func (s *sqlite3) GetKind(kind string) string {
-	return kind
+func (s *sqlite3) GetKind(kind datatype.DataType) string {
+	return "kind"
 }

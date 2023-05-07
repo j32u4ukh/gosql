@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
 )
 
@@ -14,7 +15,7 @@ type Column struct {
 
 	// 欄位變數類型
 	// SQL 中的變數類型(string, Message, Slice, Map 等類型，預計以超長 VARCHAR 形式儲存)
-	Type string
+	Type datatype.DataType
 
 	// 欄位大小
 	Size int32
@@ -92,10 +93,10 @@ func NewDbColumn(name string, kind string, isPrimaryKey bool, canNull bool, _def
 	// fmt.Printf("NewDbColumn kind: %s, left: %d\n", kind, left)
 
 	if left == -1 {
-		column.Type = kind
+		column.Type = datatype.DataType(kind)
 		column.Size = 0
 	} else {
-		column.Type = kind[:left]
+		column.Type = datatype.DataType(kind[:left])
 		size, _ := strconv.Atoi(kind[left+1 : len(kind)-1])
 		column.Size = int32(size)
 	}
@@ -155,7 +156,7 @@ func (c *Column) GetInfo() string {
 	if c.Size > 0 {
 		result = fmt.Sprintf("%s(%d)", c.Type, c.Size)
 	} else {
-		result = c.Type
+		result = string(c.Type)
 	}
 
 	if c.IsUnsigned {

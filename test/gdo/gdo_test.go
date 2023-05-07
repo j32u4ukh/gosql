@@ -151,18 +151,18 @@ func InitTable() *gdo.Table {
 }
 
 func TestTableCreate(t *testing.T) {
-	answer := "CREATE TABLE IF NOT EXISTS `demo2`.`StmtDesk` (`Id` INT(11) NOT NULL, `Content` VARCHAR(3000) NOT NULL, PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
+	answer := "CREATE TABLE IF NOT EXISTS `demo2`.`StmtDesk` (`Id` INT(11) NOT NULL DEFAULT 0, `Content` VARCHAR(3000) NOT NULL DEFAULT '', PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
 	table := InitTable()
 	sql, err := table.BuildCreateStmt()
 	fmt.Printf("sql: %s\n", sql)
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestTableCreate | Errr: %+v\n", err))
+			t.Errorf("TestTableCreate | Errr: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestTableCreate |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestTableCreate |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }

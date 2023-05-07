@@ -114,8 +114,10 @@ func (tpc *TableParamConfig) AddIndex(name string, kind string, column ...string
 type ColumnParamConfig struct {
 	Number int    `json:"number"`
 	Name   string `json:"name"`
-	Type   string `json:"type"`
-	Size   int    `json:"size"`
+
+	// TODO: 評估此類型是否也改用 datatype.DataType
+	Type string `json:"type"`
+	Size int    `json:"size"`
 	// 定義 PrimaryKey 所使用的排序演算法(若不特別定義，可使用 Default)
 	PrimaryKey string `json:"primary_key"`
 	Unsigned   string `json:"unsigned"`

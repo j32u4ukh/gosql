@@ -35,7 +35,7 @@ func InitTable() (*proto.ProtoTable, error) {
 }
 
 func TestCreateStmt(t *testing.T) {
-	answer := "CREATE TABLE IF NOT EXISTS `demo2`.`Desk` (`index` INT(11) NOT NULL AUTO_INCREMENT COMMENT '索引值', `user_name` VARCHAR(20) NOT NULL COMMENT '玩家名稱' COLLATE 'utf8mb4_bin', `item_id` SMALLINT(6) NOT NULL COMMENT '物品 ID', `time` TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Log 建立時間', PRIMARY KEY (`index`, `user_name`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
+	answer := "CREATE TABLE IF NOT EXISTS `demo2`.`Desk` (`index` INT(11) NOT NULL AUTO_INCREMENT COMMENT '索引值', `user_name` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '玩家名稱' COLLATE 'utf8mb4_bin', `item_id` SMALLINT(6) NOT NULL DEFAULT 0 COMMENT '物品 ID', `time` TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Log 建立時間', PRIMARY KEY (`index`, `user_name`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
 	table, err := InitTable()
 
 	if err != nil {

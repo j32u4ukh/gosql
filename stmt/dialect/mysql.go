@@ -2,7 +2,6 @@ package dialect
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
@@ -40,7 +39,7 @@ func init() {
 }
 
 // 變數類型，轉為 SQL 中的變數類型
-func (s *mysql) TypeOf(dataType string) string {
+func (s *mysql) TypeOf(dataType datatype.DataType) datatype.DataType {
 	switch dataType {
 	case datatype.TINYINT:
 		fallthrough
@@ -86,7 +85,7 @@ func (s *mysql) TypeOf(dataType string) string {
 }
 
 // 根據 dataType 、當前的 size 以及 DB 本身的限制，對數值大小再定義
-func (s *mysql) SizeOf(dataType string, size int32) int32 {
+func (s *mysql) SizeOf(dataType datatype.DataType, size int32) int32 {
 	switch dataType {
 	case datatype.TINYINT:
 		fallthrough
@@ -131,34 +130,17 @@ func (s *mysql) SizeOf(dataType string, size int32) int32 {
 	}
 }
 
-// Protobuf 中的變數類型，轉為 SQL 中的變數類型
-func (s *mysql) ProtoTypeOf(kind string) string {
-	switch kind {
-	case "INT32":
-		return "INT"
-	case "INT64":
-		return "BIGINT"
-	case "BOOL":
-		return "TINYINT"
-	case "STRING":
-		return "VARCHAR"
-	// 原生 SQL 變數類型，無須修改
-	default:
-		return kind
-	}
-}
-
-func (s *mysql) GetDefault(dataType string) string {
+func (s *mysql) GetDefault(dataType datatype.DataType) string {
 	return ""
 }
 
 // 是否為數值類型
-func (s *mysql) IsSortable(kind string) bool {
-	return s.KindMap["STRING"].Contains(strings.ToUpper(kind))
+func (s *mysql) IsSortable(kind datatype.DataType) bool {
+	return s.KindMap["STRING"].Contains(datatype.ToUpper(kind))
 }
 
 // 判斷變數類型(integer, float, text, ...)
-func (s *mysql) GetKind(kind string) string {
+func (s *mysql) GetKind(kind datatype.DataType) string {
 	for k, v := range s.KindMap {
 		if v.Contains(kind) {
 			return k

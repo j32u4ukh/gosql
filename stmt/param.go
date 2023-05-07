@@ -264,12 +264,12 @@ func (p *TableParam) GetIndexColumns(kind string, indexName string) *cntr.Array[
 	var ok bool
 
 	if im, ok = p.indexMap[kind]; !ok {
-		gosql.Error("gosql", fmt.Sprintf("There is no type %s in indexMap.", kind))
+		gosql.Error(fmt.Sprintf("There is no type %s in indexMap.", kind))
 		return nil
 	}
 
 	if _, ok := im[indexName]; !ok {
-		gosql.Error("gosql", fmt.Sprintf("There is no indexName %s in indexMap[%s].", indexName, kind))
+		gosql.Error(fmt.Sprintf("There is no indexName %s in indexMap[%s].", indexName, kind))
 		return nil
 	}
 
@@ -359,10 +359,10 @@ type ColumnParam struct {
 	Name string
 
 	// 原始欄位變數類型
-	OriginType string
+	OriginType datatype.DataType
 
 	// 欄位變數類型
-	Type string
+	Type datatype.DataType
 
 	// 欄位大小
 	Size int32
@@ -402,8 +402,7 @@ type ColumnParam struct {
 
 // 改以 DefineMap 的形式暫存各個欄位的額外設定值，考慮'先後順序'與'設定值之間的相互牽制'，
 // 例如使用 AutoIncrement 的欄位要求必須是 PrimaryKey
-func NewColumnParam(number int, name string, kind string, dial dialect.SQLDialect, tags ...string) *ColumnParam {
-	kind = strings.ToUpper(kind)
+func NewColumnParam(number int, name string, kind datatype.DataType, dial dialect.SQLDialect, tags ...string) *ColumnParam {
 	param := &ColumnParam{
 		FieldNumber:  number,
 		Name:         name,
@@ -449,15 +448,12 @@ func (p *ColumnParam) SetName(name string) {
 	p.Name = name
 }
 
-func (p *ColumnParam) SetType(dataType string) {
-	// 確保全大寫，以利設置欄位的預設大小
-	p.Type = strings.ToUpper(dataType)
-
-	// 儲存類型修正前的類型
-	p.OriginType = datatype.GetOriginType(p.Type)
+func (p *ColumnParam) SetType(dataType datatype.DataType) {
+	// 儲存類型修正前的類型(確保全大寫，以利設置欄位的預設大小)
+	p.OriginType = datatype.ToUpper(dataType)
 
 	// 根據實際使用的資料庫，對變數類型作修正
-	p.Type = dialect.GetDialect(p.dial).TypeOf(p.Type)
+	p.Type = dialect.GetDialect(p.dial).TypeOf(p.OriginType)
 
 	// 根據 Type 、當前的 Size 以及 DB 本身的限制，對數值大小再定義
 	p.SetSize(p.Size)
@@ -550,7 +546,7 @@ func (p *ColumnParam) Redefine() {
 
 	if p.Config.Type != "" {
 		// 確保全大寫，以利設置欄位的預設大小
-		p.Type = strings.ToUpper(p.Config.Type)
+		p.Type = datatype.ToUpper(datatype.DataType(p.Config.Type))
 	}
 
 	// 根據實際使用的資料庫，對變數類型作修正

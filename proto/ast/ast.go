@@ -104,7 +104,7 @@ func GetProtoParams(path string, sqlDial dialect.SQLDialect) (*stmt.TableParam, 
 		param = stmt.NewColumnParam(
 			idx,
 			filed.FieldName,
-			filed.Type,
+			datatype.ProtoToDataType(filed.Type),
 			sqlDial,
 			tags...,
 		)
@@ -149,7 +149,7 @@ func GetVariableParams(path string) ([]*Variable, error) {
 	for _, dict := range body.Maps {
 		fmt.Printf("GetVariableParams | dict: %+v\n", dict)
 		idx, _ = strconv.Atoi(dict.FieldNumber)
-		variable = NewVariable(idx, dict.MapName, datatype.MAP)
+		variable = NewVariable(idx, dict.MapName, string(datatype.MAP))
 		variabes = append(variabes, variable)
 	}
 
