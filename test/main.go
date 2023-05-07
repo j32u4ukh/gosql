@@ -12,7 +12,7 @@ import (
 // runoob
 func InitWebsitesTable() (table *gdo.Table) {
 	tableParams := stmt.NewTableParam()
-	fmt.Printf("tableParams: %v\n", tableParams)
+	// fmt.Printf("tableParams: %v\n", tableParams)
 	colParam0 := stmt.NewColumnParam(0, "id", datatype.INT, dialect.MARIA)
 	colParam0.SetPrimaryKey(stmt.ALGO)
 	colParam1 := stmt.NewColumnParam(1, "name", datatype.VARCHAR, dialect.MARIA)
@@ -29,11 +29,18 @@ func InitWebsitesTable() (table *gdo.Table) {
 	return table
 }
 
-// SELECT DISTINCT `country` FROM `Websites`;
+/*
+
+SELECT * FROM Websites
+ORDER BY alexa;
+
+*/
+
 func main() {
 	table := InitWebsitesTable()
-	table.SetQueryMode(stmt.DistinctSelect)
-	table.Query("country")
+	//////////////////////////////////////////////////
+	table.SetOrderBy("alexa")
+	//////////////////////////////////////////////////
 	sql, err := table.BuildSelectStmt()
 	if err != nil {
 		return
