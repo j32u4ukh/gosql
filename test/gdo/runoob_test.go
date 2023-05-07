@@ -185,3 +185,26 @@ func TestRunoobSelect9(t *testing.T) {
 		}
 	}
 }
+
+func TestRunoobInsert1(t *testing.T) {
+	answer := "INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES (NULL, '百度', 'https://www.baidu.com/', 4, 'CN');"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	err := table.Insert([]any{"NULL", "百度", "https://www.baidu.com/", 4, "CN"}, nil)
+	if err != nil {
+		fmt.Printf("Insert err: %+v\n", err)
+		return
+	}
+	//////////////////////////////////////////////////
+	sql, err := table.BuildInsertStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobInsert1 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobInsert1 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}

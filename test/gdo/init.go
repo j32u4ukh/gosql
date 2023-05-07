@@ -35,8 +35,8 @@ func InitWebsitesTable() *gdo.Table {
 	colParam1 := stmt.NewColumnParam(1, "name", datatype.VARCHAR, dialect.MARIA)
 	colParam2 := stmt.NewColumnParam(2, "url", datatype.VARCHAR, dialect.MARIA)
 	colParam2.SetSize(50)
-	colParam3 := stmt.NewColumnParam(3, "alexa ", datatype.INT, dialect.MARIA)
-	colParam4 := stmt.NewColumnParam(4, "contury ", datatype.VARCHAR, dialect.MARIA)
+	colParam3 := stmt.NewColumnParam(3, "alexa", datatype.INT, dialect.MARIA)
+	colParam4 := stmt.NewColumnParam(4, "contury", datatype.VARCHAR, dialect.MARIA)
 	colParams := []*stmt.ColumnParam{colParam0, colParam1, colParam2, colParam3, colParam4}
 	// for i, col := range colParams {
 	// 	fmt.Printf("%d) %+v\n", i, col)

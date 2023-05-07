@@ -15,11 +15,12 @@ func InitWebsitesTable() (table *gdo.Table) {
 	// fmt.Printf("tableParams: %v\n", tableParams)
 	colParam0 := stmt.NewColumnParam(0, "id", datatype.INT, dialect.MARIA)
 	colParam0.SetPrimaryKey(stmt.ALGO)
+	colParam0.SetDefault("AI")
 	colParam1 := stmt.NewColumnParam(1, "name", datatype.VARCHAR, dialect.MARIA)
 	colParam2 := stmt.NewColumnParam(2, "url", datatype.VARCHAR, dialect.MARIA)
 	colParam2.SetSize(50)
-	colParam3 := stmt.NewColumnParam(3, "alexa ", datatype.INT, dialect.MARIA)
-	colParam4 := stmt.NewColumnParam(4, "contury ", datatype.VARCHAR, dialect.MARIA)
+	colParam3 := stmt.NewColumnParam(3, "alexa", datatype.INT, dialect.MARIA)
+	colParam4 := stmt.NewColumnParam(4, "contury", datatype.VARCHAR, dialect.MARIA)
 	colParams := []*stmt.ColumnParam{colParam0, colParam1, colParam2, colParam3, colParam4}
 	// for i, col := range colParams {
 	// 	fmt.Printf("%d) %+v\n", i, col)
@@ -31,18 +32,23 @@ func InitWebsitesTable() (table *gdo.Table) {
 
 /*
 
-SELECT * FROM Websites
-ORDER BY alexa;
+INSERT INTO Websites (name, url, alexa, country)
+VALUES ('百度','https://www.baidu.com/','4','CN');
 
 */
 
 func main() {
 	table := InitWebsitesTable()
 	//////////////////////////////////////////////////
-	table.SetOrderBy("country", "alexa")
-	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	err := table.Insert([]any{"NULL", "百度", "https://www.baidu.com/", 4, "CN"}, nil)
 	if err != nil {
+		fmt.Printf("Insert err: %+v\n", err)
+		return
+	}
+	//////////////////////////////////////////////////
+	sql, err := table.BuildInsertStmt()
+	if err != nil {
+		fmt.Printf("BuildInsertStmt err: %+v\n", err)
 		return
 	}
 	fmt.Printf("sql: %s\n", sql)
