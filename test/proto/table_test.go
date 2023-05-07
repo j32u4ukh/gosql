@@ -39,18 +39,18 @@ func TestCreateStmt(t *testing.T) {
 	table, err := InitTable()
 
 	if err != nil {
-		t.Error(fmt.Sprintf("TestCreateStmt | Failed to init table: %+v\n", err))
+		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
 	}
 
 	sql, err := table.BuildCreateStmt()
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestCreateStmt | Error: %+v\n", err))
+			t.Errorf("TestCreateStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestCreateStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestCreateStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -60,7 +60,7 @@ func TestInsertStmt(t *testing.T) {
 	table, err := InitTable()
 
 	if err != nil {
-		t.Error(fmt.Sprintf("TestCreateStmt | Failed to init table: %+v\n", err))
+		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
 	}
 
 	d1 := &pbgo.Desk{
@@ -75,11 +75,11 @@ func TestInsertStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestInsertStmt | Error: %+v\n", err))
+			t.Errorf("TestInsertStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -89,7 +89,7 @@ func TestQueryStmt(t *testing.T) {
 	table, err := InitTable()
 
 	if err != nil {
-		t.Error(fmt.Sprintf("TestCreateStmt | Failed to init table: %+v\n", err))
+		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
 	}
 
 	table.SetLimit(5)
@@ -98,11 +98,11 @@ func TestQueryStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestInsertStmt | Error: %+v\n", err))
+			t.Errorf("TestInsertStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -112,7 +112,7 @@ func TestUpdateStmt(t *testing.T) {
 	table, err := InitTable()
 
 	if err != nil {
-		t.Error(fmt.Sprintf("TestCreateStmt | Failed to init table: %+v\n", err))
+		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
 	}
 
 	d1 := &pbgo.Desk{
@@ -125,11 +125,11 @@ func TestUpdateStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestUpdateStmt | Error: %+v\n", err))
+			t.Errorf("TestUpdateStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -139,7 +139,7 @@ func TestDeleteDemo(t *testing.T) {
 	table, err := InitTable()
 
 	if err != nil {
-		t.Error(fmt.Sprintf("TestCreateStmt | Failed to init table: %+v\n", err))
+		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
 	}
 
 	d1 := &pbgo.Desk{
@@ -153,11 +153,11 @@ func TestDeleteDemo(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestUpdateStmt | Error: %+v\n", err))
+			t.Errorf("TestUpdateStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }

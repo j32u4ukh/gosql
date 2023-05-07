@@ -20,11 +20,11 @@ func TestWhere1(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestWhere1 | Error: %+v\n", err))
+			t.Errorf("TestWhere1 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestWhere1 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestWhere1 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -43,11 +43,11 @@ func TestWhere2(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestWhere2 | Error: %+v\n", err))
+			t.Errorf("TestWhere2 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestWhere2 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestWhere2 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -176,11 +176,11 @@ func TestTableInsert(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestInsert | Error %+v\n", err))
+			t.Errorf("TestInsert | Error %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestInsert |\nanswer: %s\nql: %s", answer, sql))
+			t.Errorf("TestInsert |\nanswer: %s\nql: %s", answer, sql)
 		}
 	}
 }
@@ -197,11 +197,11 @@ func TestTableSelect(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelect | Errr: %+v\n", err))
+			t.Errorf("TestSelect | Errr: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TesSelect |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TesSelect |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 
@@ -217,11 +217,11 @@ func TestTableUpdte(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestUpdate | rror: %+v\n", err))
+			t.Errorf("TestUpdate | rror: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TstUpdate |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TstUpdate |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -235,11 +235,11 @@ func TestTableDelete(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestDelete | Error: %+v\n", err))
+			t.Errorf("TestDelete | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestDelete |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestDelete |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
