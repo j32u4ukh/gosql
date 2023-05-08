@@ -9,6 +9,67 @@ import (
 	"github.com/j32u4ukh/gosql/stmt/dialect"
 )
 
+/*
+TODO: 一次查詢多個表格
+SELECT w.name, w.url, a.count, a.date
+FROM Websites AS w, access_log AS a
+WHERE a.site_id=w.id and w.name="菜鳥教程";
+
+SELECT Websites.id, Websites.name, access_log.count, access_log.date
+FROM Websites
+INNER JOIN access_log
+ON Websites.id=access_log.site_id;
+
+注釋：INNER JOIN 與 JOIN 是相同的。
+SELECT Websites.name, access_log.count, access_log.date
+FROM Websites
+INNER JOIN access_log
+ON Websites.id=access_log.site_id
+ORDER BY access_log.count;
+
+SELECT Websites.name, access_log.count, access_log.date
+FROM Websites
+LEFT JOIN access_log
+ON Websites.id=access_log.site_id
+ORDER BY access_log.count DESC;
+
+SELECT websites.name, access_log.count, access_log.date
+FROM websites
+RIGHT JOIN access_log
+ON access_log.site_id=websites.id
+ORDER BY access_log.count DESC;
+
+SELECT Websites.name, access_log.count, access_log.date
+FROM Websites
+FULL OUTER JOIN access_log
+ON Websites.id=access_log.site_id
+ORDER BY access_log.count DESC;
+
+SELECT country FROM Websites
+UNION
+SELECT country FROM apps
+ORDER BY country;
+
+SELECT country FROM Websites
+UNION ALL
+SELECT country FROM apps
+ORDER BY country;
+
+SELECT country, name FROM Websites
+WHERE country='CN'
+UNION ALL
+SELECT country, app_name FROM apps
+WHERE country='CN'
+ORDER BY country;
+
+INSERT INTO Websites (name, country)
+SELECT app_name, country FROM apps;
+
+INSERT INTO Websites (name, country)
+SELECT app_name, country FROM apps
+WHERE id=1;
+*/
+
 // runoob
 func InitWebsitesTable() (table *gdo.Table) {
 	tableParams := stmt.NewTableParam()
@@ -31,41 +92,20 @@ func InitWebsitesTable() (table *gdo.Table) {
 }
 
 /*
-SELECT name AS n, country AS c
-FROM Websites;
-
-SELECT name, CONCAT(url, ', ', alexa, ', ', country) AS site_info
-FROM Websites;
-
 SELECT w.name, w.url, a.count, a.date
 FROM Websites AS w, access_log AS a
 WHERE a.site_id=w.id and w.name="菜鳥教程";
 */
 
 func main() {
-	// table := InitWebsitesTable()
-	// //////////////////////////////////////////////////
-	// where := gdo.WS().Between("name", "A", "H")
-	// table.SetSelectCondition(where)
-	// //////////////////////////////////////////////////
-	// sql, err := table.BuildSelectStmt()
-	// if err != nil {
-	// 	fmt.Printf("BuildSelectStmt err: %+v\n", err)
-	// 	return
-	// }
-	// fmt.Printf("sql: %s\n", sql)
-
-	columns := []*stmt.SelectItem{
-		stmt.NewSelectItem("Name").UseBacktick(),
-		stmt.NewSelectItem("Phone").UseBacktick(),
-	}
-	for _, column := range columns {
-		fmt.Printf("column: %s\n", column.ToStmt())
-	}
-	formatColumns, err := stmt.FormatColumns(columns)
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	table.Query(stmt.NewSelectItem("name"), stmt.NewSelectItem("").Concat("url", "', '", "alexa", "', '", "country").SetAlias("site_info"))
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
 	if err != nil {
-		fmt.Printf("FormatColumns err: %+v\n", err)
+		fmt.Printf("BuildSelectStmt err: %+v\n", err)
 		return
 	}
-	fmt.Printf("formatColumns: %s\n", formatColumns)
+	fmt.Printf("sql: %s\n", sql)
 }

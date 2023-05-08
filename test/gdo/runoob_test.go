@@ -346,6 +346,45 @@ func TestRunoobSelect17(t *testing.T) {
 		}
 	}
 }
+
+func TestRunoobSelect18(t *testing.T) {
+	answer := "SELECT name AS n, country AS c FROM `Websites`;"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	table.Query(stmt.NewSelectItem("name").SetAlias("n"), stmt.NewSelectItem("country").SetAlias("c"))
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect18 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect18 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestRunoobSelect19(t *testing.T) {
+	answer := "SELECT name, CONCAT(url, ', ', alexa, ', ', country) AS site_info FROM `Websites`;"
+	table := InitWebsitesTable()
+	//////////////////////////////////////////////////
+	table.Query(stmt.NewSelectItem("name"), stmt.NewSelectItem("").Concat("url", "', '", "alexa", "', '", "country").SetAlias("site_info"))
+	//////////////////////////////////////////////////
+	sql, err := table.BuildSelectStmt()
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestRunoobSelect19 | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestRunoobSelect19 |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
 func TestRunoobInsert1(t *testing.T) {
 	answer := "INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES (NULL, '百度', 'https://www.baidu.com/', 4, 'CN');"
 	table := InitWebsitesTable()
