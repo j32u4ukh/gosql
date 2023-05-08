@@ -31,8 +31,15 @@ func InitWebsitesTable() (table *gdo.Table) {
 }
 
 /*
-SELECT * FROM Websites
-WHERE name BETWEEN 'A' AND 'H';
+SELECT name AS n, country AS c
+FROM Websites;
+
+SELECT name, CONCAT(url, ', ', alexa, ', ', country) AS site_info
+FROM Websites;
+
+SELECT w.name, w.url, a.count, a.date
+FROM Websites AS w, access_log AS a
+WHERE a.site_id=w.id and w.name="菜鳥教程";
 */
 
 func main() {

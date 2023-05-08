@@ -100,7 +100,7 @@ func (s *SelectStmt) SetOffset(offset int32) *SelectStmt {
 }
 
 func (s *SelectStmt) Release() {
-	s.QueryColumns = []string{}
+	s.QueryColumns = s.QueryColumns[:0]
 	s.Where.Release()
 	s.OrderBy = nil
 	s.OrderType = "ASC"
@@ -158,4 +158,101 @@ func (s *SelectStmt) ToStmt() (string, error) {
 
 	sql := fmt.Sprintf("SELECT %s FROM %s%s%s%s;", formatColumns, tableName, where, order, limitOffset)
 	return sql, nil
+}
+
+type SelectItem struct {
+	Name  string
+	Alias string
+}
+
+func NewSelectItem() *SelectItem {
+	return &SelectItem{}
+}
+
+func (s *SelectItem) SetName(name string, backtick bool) *SelectItem {
+	if backtick {
+		s.Name = fmt.Sprintf("`%s`", name)
+	} else {
+		s.Name = name
+	}
+	return s
+}
+
+func (s *SelectItem) SetAlias(alias string) *SelectItem {
+	s.Alias = alias
+	return s
+}
+
+func (s *SelectItem) Count() *SelectItem {
+	s.Name = fmt.Sprintf("COUNT(%s)", s.Name)
+	return s
+}
+
+func (s *SelectItem) Distinct() *SelectItem {
+	s.Name = fmt.Sprintf("DISTINCT(%s)", s.Name)
+	return s
+}
+
+func (s *SelectItem) Concat(elements ...string) *SelectItem {
+	s.Name = fmt.Sprintf("CONCAT(%s)", strings.Join(elements, ", "))
+	return s
+}
+
+func (s *SelectItem) ToStmt() string {
+	result := s.Name
+	if s.Alias != "" {
+		result = fmt.Sprintf("%s AS %s", result, s.Alias)
+	}
+	return result
+}
+
+func FormatColumns(columns []string, mode byte) (string, error) {
+	length := len(columns)
+
+	switch length {
+	case 0:
+		switch mode {
+		case DistinctSelect:
+			return "", errors.New("You need to specify the columns when using DISTINCT.")
+		case CountSelect:
+			return "COUNT(*)", nil
+		case CountDistinctSelect:
+			return "", errors.New("You need to specify the columns when using DISTINCT.")
+		case NormalSelect:
+			fallthrough
+		default:
+			return "*", nil
+		}
+	case 1:
+		switch mode {
+		case DistinctSelect:
+			return fmt.Sprintf("DISTINCT `%s`", columns[0]), nil
+		case CountSelect:
+			return fmt.Sprintf("COUNT(`%s`)", columns[0]), nil
+		case CountDistinctSelect:
+			return fmt.Sprintf("COUNT(DISTINCT `%s`)", columns[0]), nil
+		case NormalSelect:
+			fallthrough
+		default:
+			return columns[0], nil
+		}
+	default:
+		temps := []string{}
+		for _, column := range columns {
+			temps = append(temps, fmt.Sprintf("`%s`", column))
+		}
+		result := strings.Join(temps, ", ")
+		switch mode {
+		case DistinctSelect:
+			return fmt.Sprintf("DISTINCT %s", result), nil
+		case CountSelect:
+			return fmt.Sprintf("COUNT(%s)", result), nil
+		case CountDistinctSelect:
+			return fmt.Sprintf("COUNT(DISTINCT %s)", result), nil
+		case NormalSelect:
+			fallthrough
+		default:
+			return result, nil
+		}
+	}
 }
