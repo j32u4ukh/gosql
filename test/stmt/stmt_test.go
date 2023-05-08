@@ -102,7 +102,7 @@ func TestSelectStmt3(t *testing.T) {
 
 	sql, err := stmt.
 		NewSelectStmt("customers").
-		Query("Name", "Phone").
+		Query(stmt.NewSelectItem("Name").UseBacktick(), stmt.NewSelectItem("Phone").UseBacktick()).
 		SetCondition(where).
 		ToStmt()
 
@@ -129,7 +129,7 @@ func TestSelectStmt4(t *testing.T) {
 
 	sql, err := stmt.
 		NewSelectStmt("customers").
-		Query("Name", "Phone").
+		Query(stmt.NewSelectItem("Name").UseBacktick(), stmt.NewSelectItem("Phone").UseBacktick()).
 		SetCondition(where).
 		ToStmt()
 

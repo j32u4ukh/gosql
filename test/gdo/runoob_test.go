@@ -12,7 +12,7 @@ func TestRunoobSelect1(t *testing.T) {
 	answer := "SELECT `name`, `country` FROM `Websites`;"
 	table := InitWebsitesTable()
 	fmt.Printf("%+v\n", table)
-	table.Query("name", "country")
+	table.Query(stmt.NewSelectItem("name").UseBacktick(), stmt.NewSelectItem("country").UseBacktick())
 	sql, err := table.BuildSelectStmt()
 
 	if err != nil || sql != answer {
@@ -29,8 +29,7 @@ func TestRunoobSelect1(t *testing.T) {
 func TestRunoobSelect2(t *testing.T) {
 	answer := "SELECT DISTINCT `country` FROM `Websites`;"
 	table := InitWebsitesTable()
-	table.SetQueryMode(stmt.DistinctSelect)
-	table.Query("country")
+	table.Query(stmt.NewSelectItem("country").UseBacktick().Distinct())
 	sql, err := table.BuildSelectStmt()
 
 	if err != nil || sql != answer {

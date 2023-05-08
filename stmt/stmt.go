@@ -13,16 +13,6 @@ const (
 	DbUpdate
 )
 
-// Select mode
-const (
-	// NoneSelect     byte = 0
-	NormalSelect   byte = 1
-	CountSelect    byte = 2
-	DistinctSelect byte = 4
-	// Mix select mode
-	CountDistinctSelect byte = 6
-)
-
 type IStatement interface {
 	ToStmt() string
 }

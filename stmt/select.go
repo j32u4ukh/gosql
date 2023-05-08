@@ -10,28 +10,26 @@ import (
 type SelectStmt struct {
 	DbName    string
 	TableName string
-	// 要查詢的欄位名稱列表
-	QueryColumns []string
+	// 要查詢的項目列表
+	QueryColumns []*SelectItem
 	// 查詢的篩選機制
-	Where      *WhereStmt
-	OrderBy    []string
-	OrderType  string
-	Limit      int32
-	Offset     int32
-	selectMode byte
+	Where     *WhereStmt
+	OrderBy   []string
+	OrderType string
+	Limit     int32
+	Offset    int32
 }
 
 func NewSelectStmt(tableName string) *SelectStmt {
 	s := &SelectStmt{
 		DbName:       "",
 		TableName:    tableName,
-		QueryColumns: []string{},
+		QueryColumns: []*SelectItem{},
 		Where:        &WhereStmt{},
 		OrderBy:      nil,
 		OrderType:    "",
 		Limit:        -1,
 		Offset:       0,
-		selectMode:   NormalSelect,
 	}
 	return s
 }
@@ -41,12 +39,7 @@ func (s *SelectStmt) SetDbName(name string) *SelectStmt {
 	return s
 }
 
-func (s *SelectStmt) SetQueryMode(mode byte) *SelectStmt {
-	s.selectMode = mode
-	return s
-}
-
-func (s *SelectStmt) Query(columns ...string) *SelectStmt {
+func (s *SelectStmt) Query(columns ...*SelectItem) *SelectStmt {
 	s.QueryColumns = append(s.QueryColumns, columns...)
 	return s
 }
@@ -109,7 +102,7 @@ func (s *SelectStmt) Release() {
 }
 
 func (s *SelectStmt) ToStmt() (string, error) {
-	formatColumns, err := FormatColumns(s.QueryColumns, s.selectMode)
+	formatColumns, err := FormatColumns(s.QueryColumns)
 
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to format columns.")
@@ -165,16 +158,12 @@ type SelectItem struct {
 	Alias string
 }
 
-func NewSelectItem() *SelectItem {
-	return &SelectItem{}
+func NewSelectItem(name string) *SelectItem {
+	return &SelectItem{Name: name}
 }
 
-func (s *SelectItem) SetName(name string, backtick bool) *SelectItem {
-	if backtick {
-		s.Name = fmt.Sprintf("`%s`", name)
-	} else {
-		s.Name = name
-	}
+func (s *SelectItem) UseBacktick() *SelectItem {
+	s.Name = fmt.Sprintf("`%s`", s.Name)
 	return s
 }
 
@@ -189,7 +178,7 @@ func (s *SelectItem) Count() *SelectItem {
 }
 
 func (s *SelectItem) Distinct() *SelectItem {
-	s.Name = fmt.Sprintf("DISTINCT(%s)", s.Name)
+	s.Name = fmt.Sprintf("DISTINCT %s", s.Name)
 	return s
 }
 
@@ -206,53 +195,14 @@ func (s *SelectItem) ToStmt() string {
 	return result
 }
 
-func FormatColumns(columns []string, mode byte) (string, error) {
+func FormatColumns(columns []*SelectItem) (string, error) {
 	length := len(columns)
-
-	switch length {
-	case 0:
-		switch mode {
-		case DistinctSelect:
-			return "", errors.New("You need to specify the columns when using DISTINCT.")
-		case CountSelect:
-			return "COUNT(*)", nil
-		case CountDistinctSelect:
-			return "", errors.New("You need to specify the columns when using DISTINCT.")
-		case NormalSelect:
-			fallthrough
-		default:
-			return "*", nil
-		}
-	case 1:
-		switch mode {
-		case DistinctSelect:
-			return fmt.Sprintf("DISTINCT `%s`", columns[0]), nil
-		case CountSelect:
-			return fmt.Sprintf("COUNT(`%s`)", columns[0]), nil
-		case CountDistinctSelect:
-			return fmt.Sprintf("COUNT(DISTINCT `%s`)", columns[0]), nil
-		case NormalSelect:
-			fallthrough
-		default:
-			return columns[0], nil
-		}
-	default:
-		temps := []string{}
-		for _, column := range columns {
-			temps = append(temps, fmt.Sprintf("`%s`", column))
-		}
-		result := strings.Join(temps, ", ")
-		switch mode {
-		case DistinctSelect:
-			return fmt.Sprintf("DISTINCT %s", result), nil
-		case CountSelect:
-			return fmt.Sprintf("COUNT(%s)", result), nil
-		case CountDistinctSelect:
-			return fmt.Sprintf("COUNT(DISTINCT %s)", result), nil
-		case NormalSelect:
-			fallthrough
-		default:
-			return result, nil
-		}
+	if length == 0 {
+		return "*", nil
 	}
+	results := []string{}
+	for _, column := range columns {
+		results = append(results, column.ToStmt())
+	}
+	return strings.Join(results, ", "), nil
 }

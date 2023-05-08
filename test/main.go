@@ -43,15 +43,29 @@ WHERE a.site_id=w.id and w.name="菜鳥教程";
 */
 
 func main() {
-	table := InitWebsitesTable()
-	//////////////////////////////////////////////////
-	where := gdo.WS().Between("name", "A", "H")
-	table.SetSelectCondition(where)
-	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	// table := InitWebsitesTable()
+	// //////////////////////////////////////////////////
+	// where := gdo.WS().Between("name", "A", "H")
+	// table.SetSelectCondition(where)
+	// //////////////////////////////////////////////////
+	// sql, err := table.BuildSelectStmt()
+	// if err != nil {
+	// 	fmt.Printf("BuildSelectStmt err: %+v\n", err)
+	// 	return
+	// }
+	// fmt.Printf("sql: %s\n", sql)
+
+	columns := []*stmt.SelectItem{
+		stmt.NewSelectItem("Name").UseBacktick(),
+		stmt.NewSelectItem("Phone").UseBacktick(),
+	}
+	for _, column := range columns {
+		fmt.Printf("column: %s\n", column.ToStmt())
+	}
+	formatColumns, err := stmt.FormatColumns(columns)
 	if err != nil {
-		fmt.Printf("BuildSelectStmt err: %+v\n", err)
+		fmt.Printf("FormatColumns err: %+v\n", err)
 		return
 	}
-	fmt.Printf("sql: %s\n", sql)
+	fmt.Printf("formatColumns: %s\n", formatColumns)
 }
