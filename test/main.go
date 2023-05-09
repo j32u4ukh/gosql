@@ -82,6 +82,7 @@ func InitWebsitesTable() (table *gdo.Table) {
 	colParam2.SetSize(50)
 	colParam3 := stmt.NewColumnParam(3, "alexa", datatype.INT, dialect.MARIA)
 	colParam4 := stmt.NewColumnParam(4, "contury", datatype.VARCHAR, dialect.MARIA)
+	colParam4.SetSize(50)
 	colParams := []*stmt.ColumnParam{colParam0, colParam1, colParam2, colParam3, colParam4}
 	// for i, col := range colParams {
 	// 	fmt.Printf("%d) %+v\n", i, col)
@@ -92,9 +93,14 @@ func InitWebsitesTable() (table *gdo.Table) {
 }
 
 /*
-SELECT w.name, w.url, a.count, a.date
-FROM Websites AS w, access_log AS a
-WHERE a.site_id=w.id and w.name="菜鳥教程";
+CREATE TABLE Persons
+(
+PersonID int,
+LastName varchar(255),
+FirstName varchar(255),
+Address varchar(255),
+City varchar(255)
+);
 */
 
 func main() {
@@ -102,7 +108,7 @@ func main() {
 	//////////////////////////////////////////////////
 	table.Query(stmt.NewSelectItem("name"), stmt.NewSelectItem("").Concat("url", "', '", "alexa", "', '", "country").SetAlias("site_info"))
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := table.BuildCreateStmt()
 	if err != nil {
 		fmt.Printf("BuildSelectStmt err: %+v\n", err)
 		return
