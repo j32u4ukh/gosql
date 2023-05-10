@@ -9,67 +9,6 @@ import (
 	"github.com/j32u4ukh/gosql/stmt/dialect"
 )
 
-/*
-TODO: 一次查詢多個表格
-SELECT w.name, w.url, a.count, a.date
-FROM Websites AS w, access_log AS a
-WHERE a.site_id=w.id and w.name="菜鳥教程";
-
-SELECT Websites.id, Websites.name, access_log.count, access_log.date
-FROM Websites
-INNER JOIN access_log
-ON Websites.id=access_log.site_id;
-
-注釋：INNER JOIN 與 JOIN 是相同的。
-SELECT Websites.name, access_log.count, access_log.date
-FROM Websites
-INNER JOIN access_log
-ON Websites.id=access_log.site_id
-ORDER BY access_log.count;
-
-SELECT Websites.name, access_log.count, access_log.date
-FROM Websites
-LEFT JOIN access_log
-ON Websites.id=access_log.site_id
-ORDER BY access_log.count DESC;
-
-SELECT websites.name, access_log.count, access_log.date
-FROM websites
-RIGHT JOIN access_log
-ON access_log.site_id=websites.id
-ORDER BY access_log.count DESC;
-
-SELECT Websites.name, access_log.count, access_log.date
-FROM Websites
-FULL OUTER JOIN access_log
-ON Websites.id=access_log.site_id
-ORDER BY access_log.count DESC;
-
-SELECT country FROM Websites
-UNION
-SELECT country FROM apps
-ORDER BY country;
-
-SELECT country FROM Websites
-UNION ALL
-SELECT country FROM apps
-ORDER BY country;
-
-SELECT country, name FROM Websites
-WHERE country='CN'
-UNION ALL
-SELECT country, app_name FROM apps
-WHERE country='CN'
-ORDER BY country;
-
-INSERT INTO Websites (name, country)
-SELECT app_name, country FROM apps;
-
-INSERT INTO Websites (name, country)
-SELECT app_name, country FROM apps
-WHERE id=1;
-*/
-
 // runoob
 func InitWebsitesTable() (table *gdo.Table) {
 	tableParams := stmt.NewTableParam()
@@ -91,17 +30,6 @@ func InitWebsitesTable() (table *gdo.Table) {
 	// fmt.Printf("%+v\n", table)
 	return table
 }
-
-/*
-CREATE TABLE Persons
-(
-PersonID int,
-LastName varchar(255),
-FirstName varchar(255),
-Address varchar(255),
-City varchar(255)
-);
-*/
 
 func main() {
 	table := InitWebsitesTable()
