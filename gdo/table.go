@@ -35,6 +35,7 @@ func NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.Col
 		ColumnNames:      cntr.NewArray[string](),
 	}
 	if len(t.CreateStmt.Columns) > 0 {
+		// TODO: 會自行賦值的欄位之後改成無須填入，Insert 用的 ColumnNames 就不用填入
 		// 會自行賦值的欄位也需填入 NULL，因此所有欄位名稱都要求填入
 		for _, column := range t.CreateStmt.Columns {
 			if column.IgnoreThis {
@@ -78,14 +79,6 @@ func (t *Table) String() string {
 	}
 
 	return info
-}
-
-// NOTE: 根據 Sync 的需求，有需要再 Clone 即可
-func (t *Table) SyncClone() *Table {
-	clone := &Table{
-		CreateStmt: t.CreateStmt.Clone(),
-	}
-	return clone
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

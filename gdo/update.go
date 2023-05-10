@@ -25,6 +25,10 @@ func (t *Table) SetUpdateCondition(where *WhereStmt) {
 	t.UpdateStmt.SetCondition(where.ToStmtWhere())
 }
 
+func (t *Table) AllowEmptyUpdateCondition() {
+	t.UpdateStmt.AllowEmptyWhere()
+}
+
 func (t *Table) BuildUpdateStmt() (string, error) {
 	sql, err := t.UpdateStmt.ToStmt()
 	t.UpdateStmt.Release()

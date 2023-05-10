@@ -10,6 +10,7 @@ on:
     # 曾使用 '!/(main|develop)/'，但仍沒有發揮作用
     branches:
       - '*'
+      - 'feature/*'
       - '!main'
       - '!develop'
 

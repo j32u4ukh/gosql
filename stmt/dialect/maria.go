@@ -2,7 +2,6 @@ package dialect
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
@@ -47,24 +46,29 @@ func init() {
 }
 
 // 變數類型，轉為 SQL 中的變數類型
-func (s *maria) TypeOf(dataType string) string {
+func (s *maria) TypeOf(dataType datatype.DataType) datatype.DataType {
 	switch dataType {
 	case datatype.TINYINT, datatype.SMALLINT, datatype.MEDIUMINT, datatype.INT, datatype.BIGINT,
 		datatype.FLOAT, datatype.DOUBLE, datatype.DEMICAL,
 		datatype.VARCHAR, datatype.CHAR, datatype.TINYTEXT, datatype.TEXT, datatype.MEDIUMTEXT, datatype.LONGTEXT,
 		datatype.DATE, datatype.TIME, datatype.YEAR, datatype.DATETIME, datatype.TIMESTAMP:
 		return dataType
+	case datatype.INT32:
+		return datatype.INT
+	case datatype.INT64:
+		return datatype.BIGINT
 	case datatype.BOOL:
 		return datatype.TINYINT
+	case datatype.STRING:
+		fallthrough
 	default:
-		// panic(fmt.Sprintf("Invalid variable type: %s.", dataType))
 		fmt.Printf("(s *maria) TypeOf | dataType: %s\n", dataType)
 		return datatype.VARCHAR
 	}
 }
 
 // 根據 dataType 、當前的 size 以及 DB 本身的限制，對數值大小再定義
-func (s *maria) SizeOf(dataType string, size int32) int32 {
+func (s *maria) SizeOf(dataType datatype.DataType, size int32) int32 {
 	if size <= 0 {
 		switch dataType {
 		case datatype.BOOL:
@@ -98,54 +102,61 @@ func (s *maria) SizeOf(dataType string, size int32) int32 {
 	}
 }
 
-// Protobuf 中的變數類型，轉為 SQL 中的變數類型；若為原生 SQL 變數類型，則無須修改
-func (s *maria) ProtoTypeOf(kind string) string {
-	switch kind {
-	case "INT32":
-		return datatype.INT
-	case "INT64":
-		return datatype.BIGINT
-	case "BOOL":
-		return datatype.TINYINT
-	case "STRING":
+func (s *maria) GetDefault(dataType datatype.DataType) string {
+	switch dataType {
+	case datatype.TINYINT:
 		fallthrough
-	case datatype.MESSAGE:
+	case datatype.SMALLINT:
 		fallthrough
-	case datatype.MAP:
-		return datatype.VARCHAR
-	// 原生 SQL 變數類型，無須修改(EX: INT, TIMESTAMP)
+	case datatype.MEDIUMINT:
+		fallthrough
+	case datatype.INT:
+		fallthrough
+	case datatype.BIGINT:
+		fallthrough
+	case datatype.FLOAT:
+		fallthrough
+	case datatype.DOUBLE:
+		fallthrough
+	case datatype.DEMICAL:
+		return "0"
+	case datatype.VARCHAR:
+		fallthrough
+	case datatype.CHAR:
+		fallthrough
+	case datatype.TINYTEXT:
+		fallthrough
+	case datatype.TEXT:
+		fallthrough
+	case datatype.MEDIUMTEXT:
+		fallthrough
+	case datatype.LONGTEXT:
+		return "''"
+	// current_timestamp()
+	case datatype.DATE:
+		return "'1970-01-01'"
+	case datatype.TIME:
+		return "'00:00:00'"
+	case datatype.YEAR:
+		return "1970"
+	case datatype.DATETIME:
+		return "'1970-01-01 00:00:00'"
+	case datatype.TIMESTAMP:
+		return "'1970-01-01 00:00:01'"
 	default:
-		return kind
+		panic(fmt.Sprintf("Invalid variable type: %s.", dataType))
 	}
-}
-
-func (s *maria) DbToProto(kind string) string {
-	switch kind {
-	case "INT":
-		return "int32"
-	case "BIGINT":
-		return "int64"
-	case "TINYINT":
-		return "bool"
-	default:
-		return "string"
-	}
-}
-
-// 表格是否存在的 SQL 語法
-func (s *maria) IsTableExistsStmt(tableName string) string {
-	return fmt.Sprintf("SELECT table_name FROM information_schema.tables WHERE TABLE_NAME = '%s';", tableName)
 }
 
 // 是否為數值類型
-func (s *maria) IsSortable(kind string) bool {
-	return s.KindMap["STRING"].Contains(strings.ToUpper(kind))
+func (s *maria) IsSortable(kind datatype.DataType) bool {
+	return s.KindMap["STRING"].Contains(string(datatype.ToUpper(kind)))
 }
 
 // 判斷變數類型(integer, float, text, ...)
-func (s *maria) GetKind(kind string) string {
+func (s *maria) GetKind(kind datatype.DataType) string {
 	for k, v := range s.KindMap {
-		if v.Contains(kind) {
+		if v.Contains(string(kind)) {
 			return k
 		}
 	}

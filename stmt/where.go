@@ -89,17 +89,26 @@ func (s *WhereStmt) Like(key string, format string) *WhereStmt {
 	return s
 }
 
+func (s *WhereStmt) Regexp(key string, format string) *WhereStmt {
+	s.sql = fmt.Sprintf("`%s` REGEXP '%s'", key, format)
+	return s
+}
+
+/*
+請注意，在不同的數據庫中，BETWEEN 操作符會產生不同的結果！
+在某些數據庫中，BETWEEN 選取介於兩個值之間但不包括兩個測試值的字段。
+在某些數據庫中，BETWEEN 選取介於兩個值之間且包括兩個測試值的字段。
+在某些數據庫中，BETWEEN 選取介於兩個值之間且包括第一個測試值但不包括最後一個測試值的字段。
+
+因此，請檢查您的數據庫是如何處理 BETWEEN 操作符！
+*/
 func (s *WhereStmt) Between(key string, value1 string, value2 string) *WhereStmt {
 	s.sql = fmt.Sprintf("`%s` BETWEEN %s AND %s", key, value1, value2)
 	return s
 }
 
 func (s *WhereStmt) In(key string, values ...string) *WhereStmt {
-	strValues := []string{}
-	for _, value := range values {
-		strValues = append(strValues, value)
-	}
-	s.sql = fmt.Sprintf("`%s` IN (%s)", key, strings.Join(strValues, ", "))
+	s.sql = fmt.Sprintf("`%s` IN (%s)", key, strings.Join(values, ", "))
 	return s
 }
 

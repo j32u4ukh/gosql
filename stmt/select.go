@@ -2,6 +2,7 @@ package stmt
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -9,11 +10,11 @@ import (
 type SelectStmt struct {
 	DbName    string
 	TableName string
-	// 要查詢的欄位名稱列表
-	QueryColumns []string
+	// 要查詢的項目列表
+	QueryColumns []*SelectItem
 	// 查詢的篩選機制
 	Where     *WhereStmt
-	OrderBy   string
+	OrderBy   []string
 	OrderType string
 	Limit     int32
 	Offset    int32
@@ -23,10 +24,10 @@ func NewSelectStmt(tableName string) *SelectStmt {
 	s := &SelectStmt{
 		DbName:       "",
 		TableName:    tableName,
-		QueryColumns: []string{},
+		QueryColumns: []*SelectItem{},
 		Where:        &WhereStmt{},
-		OrderBy:      "",
-		OrderType:    "ASC",
+		OrderBy:      nil,
+		OrderType:    "",
 		Limit:        -1,
 		Offset:       0,
 	}
@@ -38,14 +39,8 @@ func (s *SelectStmt) SetDbName(name string) *SelectStmt {
 	return s
 }
 
-func (s *SelectStmt) Query(column string) *SelectStmt {
-	s.QueryColumns = append(s.QueryColumns, column)
-	return s
-}
-
-// 利用原本 Columns 的機制，直接形成 SELECT COUNT(*) 的 SQL 語法
-func (s *SelectStmt) CountMode() *SelectStmt {
-	s.QueryColumns = append(s.QueryColumns, "COUNT(*)")
+func (s *SelectStmt) Query(columns ...*SelectItem) *SelectStmt {
+	s.QueryColumns = append(s.QueryColumns, columns...)
 	return s
 }
 
@@ -54,8 +49,11 @@ func (s *SelectStmt) SetCondition(where *WhereStmt) *SelectStmt {
 	return s
 }
 
-func (s *SelectStmt) SetOrderBy(column string) *SelectStmt {
-	s.OrderBy = column
+func (s *SelectStmt) SetOrderBy(columns ...string) *SelectStmt {
+	if s.OrderBy == nil {
+		s.OrderBy = []string{}
+	}
+	s.OrderBy = append(s.OrderBy, columns...)
 	return s
 }
 
@@ -69,6 +67,21 @@ func (s *SelectStmt) WhetherReverseOrder(reverse bool) *SelectStmt {
 	return s
 }
 
+/*
+MySQL 支持 LIMIT 語句來選取指定的條數數據， Oracle 可以使用 ROWNUM 來選取。SQL Server / MS Access 則使用 SELECT TOP 語句來達到此效果。
+
+TODO: 目前尚無法支援 SQL Server / MS Access
+> SQL Server / MS Access 語法
+
+SELECT TOP number|percent column_name(s)
+FROM table_name;
+
+> MySQL 語法
+
+SELECT column_name(s)
+FROM table_name
+LIMIT number;
+*/
 func (s *SelectStmt) SetLimit(limit int32) *SelectStmt {
 	s.Limit = limit
 	return s
@@ -80,16 +93,21 @@ func (s *SelectStmt) SetOffset(offset int32) *SelectStmt {
 }
 
 func (s *SelectStmt) Release() {
-	s.QueryColumns = []string{}
+	s.QueryColumns = s.QueryColumns[:0]
 	s.Where.Release()
-	s.OrderBy = ""
+	s.OrderBy = nil
 	s.OrderType = "ASC"
 	s.Limit = -1
 	s.Offset = 0
 }
 
 func (s *SelectStmt) ToStmt() (string, error) {
-	formatColumns := FormatColumns(s.QueryColumns)
+	formatColumns, err := FormatColumns(s.QueryColumns)
+
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to format columns.")
+	}
+
 	where, err := s.Where.ToStmt()
 
 	if err != nil {
@@ -103,10 +121,18 @@ func (s *SelectStmt) ToStmt() (string, error) {
 	var order string
 	var limitOffset string
 
-	if s.OrderBy == "" {
+	if s.OrderBy == nil {
 		order = ""
 	} else {
-		order = fmt.Sprintf(" ORDER BY `%s` %s", s.OrderBy, s.OrderType)
+		orderColumns := []string{}
+		for _, col := range s.OrderBy {
+			orderColumns = append(orderColumns, fmt.Sprintf("`%s`", col))
+		}
+		order = fmt.Sprintf(" ORDER BY %s", strings.Join(orderColumns, ", "))
+
+		if s.OrderType != "" {
+			order = fmt.Sprintf("%s %s", order, s.OrderType)
+		}
 	}
 
 	if s.Limit == -1 {
@@ -125,4 +151,58 @@ func (s *SelectStmt) ToStmt() (string, error) {
 
 	sql := fmt.Sprintf("SELECT %s FROM %s%s%s%s;", formatColumns, tableName, where, order, limitOffset)
 	return sql, nil
+}
+
+type SelectItem struct {
+	Name  string
+	Alias string
+}
+
+func NewSelectItem(name string) *SelectItem {
+	return &SelectItem{Name: name}
+}
+
+func (s *SelectItem) UseBacktick() *SelectItem {
+	s.Name = fmt.Sprintf("`%s`", s.Name)
+	return s
+}
+
+func (s *SelectItem) SetAlias(alias string) *SelectItem {
+	s.Alias = alias
+	return s
+}
+
+func (s *SelectItem) Count() *SelectItem {
+	s.Name = fmt.Sprintf("COUNT(%s)", s.Name)
+	return s
+}
+
+func (s *SelectItem) Distinct() *SelectItem {
+	s.Name = fmt.Sprintf("DISTINCT %s", s.Name)
+	return s
+}
+
+func (s *SelectItem) Concat(elements ...string) *SelectItem {
+	s.Name = fmt.Sprintf("CONCAT(%s)", strings.Join(elements, ", "))
+	return s
+}
+
+func (s *SelectItem) ToStmt() string {
+	result := s.Name
+	if s.Alias != "" {
+		result = fmt.Sprintf("%s AS %s", result, s.Alias)
+	}
+	return result
+}
+
+func FormatColumns(columns []*SelectItem) (string, error) {
+	length := len(columns)
+	if length == 0 {
+		return "*", nil
+	}
+	results := []string{}
+	for _, column := range columns {
+		results = append(results, column.ToStmt())
+	}
+	return strings.Join(results, ", "), nil
 }

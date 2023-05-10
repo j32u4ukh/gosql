@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/j32u4ukh/cntr"
-	"github.com/j32u4ukh/gosql"
 )
 
 // CREATE DATABASE `PVP` /*!40100 COLLATE 'utf8mb4_bin' */
@@ -50,34 +49,6 @@ func (s *CreateStmt) SetEngine(engine string) {
 
 func (s *CreateStmt) SetCollate(collate string) {
 	s.Collate = collate
-}
-
-func (s *CreateStmt) SetTableParam(tableParam *TableParam) {
-	paramNames := tableParam.GetAllColumns().Elements
-	var column *Column
-	var ok bool
-
-	// 檢查 indexName 和 columnName 是否匹配
-	for _, name := range paramNames {
-		ok = false
-
-		for _, column = range s.Columns {
-			if column.Name == name {
-				ok = true
-				break
-			}
-		}
-
-		if !ok {
-			gosql.Error("Column %s should not in tableParam.", name)
-		}
-	}
-
-	s.TableParam = tableParam.Clone()
-}
-
-func (s *CreateStmt) GetTableParam() *TableParam {
-	return s.TableParam
 }
 
 func (s *CreateStmt) AddColumn(column *Column) *CreateStmt {
@@ -160,21 +131,4 @@ func (s *CreateStmt) ToStmt() (string, error) {
 	)
 
 	return sql, nil
-}
-
-func (s *CreateStmt) Clone() *CreateStmt {
-	clone := &CreateStmt{
-		DbName:     s.DbName,
-		TableName:  s.TableName,
-		TableParam: s.TableParam.Clone(),
-		Columns:    []*Column{},
-		Engine:     s.Engine,
-		Collate:    s.Collate,
-	}
-
-	for _, col := range s.Columns {
-		clone.Columns = append(clone.Columns, col.Clone())
-	}
-
-	return clone
 }

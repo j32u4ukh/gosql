@@ -1,6 +1,8 @@
 package gdo
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 func (t *Table) SetDeleteCondition(where *WhereStmt) {
 	if t.useAntiInjection {
@@ -9,9 +11,13 @@ func (t *Table) SetDeleteCondition(where *WhereStmt) {
 	t.DeleteStmt.SetCondition(where.ToStmtWhere())
 }
 
+func (t *Table) AllowEmptyDeleteCondition() {
+	t.DeleteStmt.AllowEmptyWhere()
+}
+
 func (t *Table) BuildDeleteStmt() (string, error) {
 	sql, err := t.DeleteStmt.ToStmt()
-	t.DeleteStmt.Release()
+	defer t.DeleteStmt.Release()
 
 	if err != nil {
 		return "", errors.Wrap(err, "生成 DeleteStmt 時發生錯誤")
