@@ -36,6 +36,15 @@ type SqlResult struct {
 	Datas [][]string
 }
 
+func (sr *SqlResult) Merge(other *SqlResult) {
+	if sr.LastInsertId < other.LastInsertId {
+		sr.LastInsertId = other.LastInsertId
+	}
+	sr.RowsAffected += other.RowsAffected
+	sr.NRow += other.NRow
+	sr.Datas = append(sr.Datas, other.Datas...)
+}
+
 func (sr SqlResult) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{\n")
@@ -144,6 +153,9 @@ func (d *Database) Query(sql string, args ...any) (*SqlResult, error) {
 	for rows.Next() {
 		if sr.NColumn == 0 {
 			sr.Columns, err = rows.Columns()
+			if err != nil {
+				return nil, errors.Wrap(err, "讀取欄位時發生錯誤")
+			}
 			sr.NColumn = int32(len(sr.Columns))
 			dest = make([]interface{}, sr.NColumn)
 			values = make([]interface{}, sr.NColumn)

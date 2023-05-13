@@ -36,7 +36,6 @@ func NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.Col
 	}
 	if len(t.CreateStmt.Columns) > 0 {
 		// TODO: 會自行賦值的欄位之後改成無須填入，Insert 用的 ColumnNames 就不用填入
-		// 會自行賦值的欄位也需填入 NULL，因此所有欄位名稱都要求填入
 		for _, column := range t.CreateStmt.Columns {
 			if column.IgnoreThis {
 				continue
@@ -45,7 +44,7 @@ func NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.Col
 		}
 		t.nColumn = int32(t.ColumnNames.Length())
 		t.InsertStmt.SetColumnNames(t.ColumnNames.Elements)
-		fmt.Printf("gdo.NewTable | ColumnNames(%d): %+v\n", t.nColumn, t.ColumnNames.Elements)
+		// fmt.Printf("gdo.NewTable | ColumnNames(%d): %+v\n", t.nColumn, t.ColumnNames.Elements)
 	}
 	return t
 }

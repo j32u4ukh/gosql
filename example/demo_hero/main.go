@@ -62,14 +62,12 @@ func main() {
 
 	dc := conf.GetDatabase()
 
-	// TODO: Connect (idx int32) -> (idx byte)
 	db, err = database.Connect(GID, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
-	defer db.Close()
-
 	if err != nil {
 		fmt.Printf("與資料庫連線時發生錯誤, err: %+v\n", err)
 		return
 	}
+	defer db.Close()
 
 	db = database.Get(GID)
 
@@ -141,6 +139,8 @@ func CreateDemo() {
 // TID2: 125000 筆/53.9523073s | 2316 筆/s
 func InsertDemo() {
 	start := time.Now()
+	result = &database.SqlResult{}
+	var temp *database.SqlResult
 
 	if TID == 1 {
 		sql, err = gs.CreateTable(TID1, "../pb", tableName1)
@@ -181,12 +181,14 @@ func InsertDemo() {
 				return
 			}
 
-			result, err = db.Exec(sql)
+			temp, err = db.Exec(sql)
 
 			if err != nil {
 				fmt.Printf("Insert Exec err: %+v\n", err)
 				return
 			}
+
+			result.Merge(temp)
 		}
 
 	} else {
@@ -222,7 +224,8 @@ func InsertDemo() {
 				fmt.Printf("Error: %+v", err)
 			}
 
-			result, err = db.Exec(sql)
+			temp, err = db.Exec(sql)
+			result.Merge(temp)
 
 			if err != nil {
 				fmt.Printf("Insert Exec err: %+v\n", err)
@@ -231,6 +234,7 @@ func InsertDemo() {
 		}
 	}
 
+	fmt.Printf("result: %s\n", result)
 	fmt.Printf("Cost time: %+v\n", time.Since(start))
 }
 
@@ -291,6 +295,8 @@ func QueryDemo() {
 // TID2: 125000 筆/61.019339s | 2048 筆/s
 func UpdateDemo() {
 	start := time.Now()
+	result = &database.SqlResult{}
+	var temp *database.SqlResult
 
 	if TID == 1 {
 		sql, err = gs.CreateTable(TID1, "../pb", tableName1)
@@ -332,7 +338,8 @@ func UpdateDemo() {
 				return
 			}
 
-			result, err = db.Exec(sql)
+			temp, err = db.Exec(sql)
+			result.Merge(temp)
 
 			if err != nil {
 				fmt.Printf("Update Exec err: %+v\n", err)
@@ -374,7 +381,8 @@ func UpdateDemo() {
 				return
 			}
 
-			result, err = db.Exec(sql)
+			temp, err = db.Exec(sql)
+			result.Merge(temp)
 
 			if err != nil {
 				fmt.Printf("Update Exec err: %+v\n", err)
@@ -383,6 +391,7 @@ func UpdateDemo() {
 		}
 	}
 
+	fmt.Printf("result: %s\n", result)
 	fmt.Printf("Cost time: %+v\n", time.Since(start))
 }
 
@@ -395,7 +404,7 @@ func DeleteDemo() {
 			return
 		}
 
-		sql, err = gs.DeleteBy(TID1, gdo.WS().Eq("bi", 0))
+		sql, err = gs.DeleteBy(TID1, gdo.WS().Eq("bi", 3))
 
 		if err != nil {
 			fmt.Printf("Delete Error: %+v\n", err)
@@ -417,7 +426,7 @@ func DeleteDemo() {
 			return
 		}
 
-		sql, err = gs.DeleteBy(TID2, gdo.WS().Eq("ui", 0))
+		sql, err = gs.DeleteBy(TID2, gdo.WS().Eq("ui", 3))
 
 		if err != nil {
 			fmt.Printf("Delete Error: %+v\n", err)

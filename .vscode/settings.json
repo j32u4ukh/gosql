@@ -5,19 +5,19 @@
     "code-runner.executorMapByGlob": {
       "$dir\\*.go": "go"
     }, 
-    "todo-tree.highlights.customHighlight": {
-      "TODO": {
-        "icon": "check",
-        "type": "line",
-        "iconColour": "#FFFF00",
-        "foreground": "#FF0000",
-        "background": "#FFFF00"
-      },
-      "FIXME": {
-        "icon": "beaker",
-        "iconColour": "#FF0000",
-        "foreground": "#FFFFFF",
-        "background": "#FF0000"
-      }
-    },
+    // "todo-tree.highlights.customHighlight": {
+    //   "TODO": {
+    //     "icon": "check",
+    //     "type": "line",
+    //     "iconColour": "#FFFF00",
+    //     "foreground": "#FF0000",
+    //     "background": "#FFFF00"
+    //   },
+    //   "FIXME": {
+    //     "icon": "beaker",
+    //     "iconColour": "#FF0000",
+    //     "foreground": "#FFFFFF",
+    //     "background": "#FF0000"
+    //   }
+    // },
   }

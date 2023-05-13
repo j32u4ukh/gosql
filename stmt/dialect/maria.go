@@ -62,7 +62,7 @@ func (s *maria) TypeOf(dataType datatype.DataType) datatype.DataType {
 	case datatype.STRING:
 		fallthrough
 	default:
-		fmt.Printf("(s *maria) TypeOf | dataType: %s\n", dataType)
+		// fmt.Printf("(s *maria) TypeOf | dataType: %s\n", dataType)
 		return datatype.VARCHAR
 	}
 }
@@ -104,33 +104,10 @@ func (s *maria) SizeOf(dataType datatype.DataType, size int32) int32 {
 
 func (s *maria) GetDefault(dataType datatype.DataType) string {
 	switch dataType {
-	case datatype.TINYINT:
-		fallthrough
-	case datatype.SMALLINT:
-		fallthrough
-	case datatype.MEDIUMINT:
-		fallthrough
-	case datatype.INT:
-		fallthrough
-	case datatype.BIGINT:
-		fallthrough
-	case datatype.FLOAT:
-		fallthrough
-	case datatype.DOUBLE:
-		fallthrough
-	case datatype.DEMICAL:
+	case datatype.TINYINT, datatype.SMALLINT, datatype.MEDIUMINT, datatype.INT, datatype.BIGINT,
+		datatype.FLOAT, datatype.DOUBLE, datatype.DEMICAL:
 		return "0"
-	case datatype.VARCHAR:
-		fallthrough
-	case datatype.CHAR:
-		fallthrough
-	case datatype.TINYTEXT:
-		fallthrough
-	case datatype.TEXT:
-		fallthrough
-	case datatype.MEDIUMTEXT:
-		fallthrough
-	case datatype.LONGTEXT:
+	case datatype.VARCHAR, datatype.CHAR, datatype.TINYTEXT, datatype.TEXT, datatype.MEDIUMTEXT, datatype.LONGTEXT:
 		return "''"
 	// current_timestamp()
 	case datatype.DATE:
