@@ -131,3 +131,11 @@ func (t *Table) refreshColumnOrder(orders []string) string {
 	}
 	return changed
 }
+
+// NOTE: 根據 Sync 的需求，有需要再 Clone 即可
+func (t *Table) SyncClone() *Table {
+	clone := &Table{
+		CreateStmt: t.CreateStmt.Clone(),
+	}
+	return clone
+}

@@ -1,0 +1,24 @@
+Mode: 1
+ProtoFolder: "../pb"
+FromDatabase:
+  UserName: "db_user"
+  Password: "password"
+  Server: "192.168.0.167"
+  Port: 3306
+  Name: "pekomiko"
+FromTables:
+  # - "api_log"
+  - "gold_log"
+  # - "pay_log"
+  # - "Desk"
+ToDatabase:
+  UserName: "db_user"
+  Password: "password"
+  Server: "192.168.0.167"
+  Port: 3306
+  Name: "pekomiko"
+ToTables:
+  # - "api_log"
+  - "gold_log"
+  # - "pay_log"
+AutoGenerate: true
