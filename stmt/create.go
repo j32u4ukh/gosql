@@ -59,6 +59,34 @@ func (s *CreateStmt) AddColumn(column *Column) *CreateStmt {
 	return s
 }
 
+func (s *CreateStmt) SetTableParam(tableParam *TableParam) {
+	paramNames := tableParam.GetAllColumns().Elements
+	var column *Column
+	var ok bool
+
+	// 檢查 indexName 和 columnName 是否匹配
+	for _, name := range paramNames {
+		ok = false
+
+		for _, column = range s.Columns {
+			if column.Name == name {
+				ok = true
+				break
+			}
+		}
+
+		if !ok {
+			fmt.Printf("(s *CreateStmt) SetTableParam | Column %s should not in tableParam.\n", name)
+		}
+	}
+
+	s.TableParam = tableParam.Clone()
+}
+
+func (s *CreateStmt) GetTableParam() *TableParam {
+	return s.TableParam
+}
+
 func (s *CreateStmt) ToStmt() (string, error) {
 	// CREATE TABLE `DESK` (
 	// 		"`id` INT NOT NULL",
@@ -131,4 +159,21 @@ func (s *CreateStmt) ToStmt() (string, error) {
 	)
 
 	return sql, nil
+}
+
+func (s *CreateStmt) Clone() *CreateStmt {
+	clone := &CreateStmt{
+		DbName:     s.DbName,
+		TableName:  s.TableName,
+		TableParam: s.TableParam.Clone(),
+		Columns:    []*Column{},
+		Engine:     s.Engine,
+		Collate:    s.Collate,
+	}
+
+	for _, col := range s.Columns {
+		clone.Columns = append(clone.Columns, col.Clone())
+	}
+
+	return clone
 }
