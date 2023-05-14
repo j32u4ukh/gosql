@@ -22,7 +22,6 @@ var gs *gstmt.Gstmt
 var sql string
 var result *database.SqlResult
 var err error
-var tableName string = "Desk"
 var logger *glog.Logger
 
 func main() {
@@ -37,13 +36,13 @@ func main() {
 
 	dc := conf.GetDatabase()
 	db, err = database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
-	defer db.Close()
 
 	if err != nil {
 		fmt.Printf("與資料庫連線時發生錯誤, err: %+v\n", err)
 		return
 	}
 
+	defer db.Close()
 	db = database.Get(0)
 
 	if db == nil {

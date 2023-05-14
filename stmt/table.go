@@ -37,7 +37,7 @@ func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, 
 			}
 			t.ColumnNames.Append(column.Name)
 		}
-
+		t.InsertStmt.SetColumnNames(t.ColumnNames.Elements)
 	}
 	return t
 }
