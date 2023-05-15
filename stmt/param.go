@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/j32u4ukh/cntr"
-	"github.com/j32u4ukh/gosql"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 	"github.com/pkg/errors"
 )
 
@@ -264,12 +264,12 @@ func (p *TableParam) GetIndexColumns(kind string, indexName string) *cntr.Array[
 	var ok bool
 
 	if im, ok = p.indexMap[kind]; !ok {
-		gosql.Error(fmt.Sprintf("There is no type %s in indexMap.", kind))
+		utils.Error(fmt.Sprintf("There is no type %s in indexMap.", kind))
 		return nil
 	}
 
 	if _, ok := im[indexName]; !ok {
-		gosql.Error(fmt.Sprintf("There is no indexName %s in indexMap[%s].", indexName, kind))
+		utils.Error(fmt.Sprintf("There is no indexName %s in indexMap[%s].", indexName, kind))
 		return nil
 	}
 
