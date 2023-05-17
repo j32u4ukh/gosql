@@ -23,29 +23,29 @@ var table *stmt.Table
 
 func main() {
 	command := strings.ToLower(os.Args[1])
-	logger = glog.GetLogger("../log", "demo_stmt", glog.DebugLevel, false)
-	conf, err := database.NewConfig("../config/config.yaml")
+	// logger = glog.GetLogger("../log", "demo_stmt", glog.DebugLevel, false)
+	// conf, err := database.NewConfig("../config/config.yaml")
 
-	if err != nil {
-		logger.Error("讀取 Config 檔時發生錯誤, err: %+v\n", err)
-		return
-	}
+	// if err != nil {
+	// 	logger.Error("讀取 Config 檔時發生錯誤, err: %+v\n", err)
+	// 	return
+	// }
 
-	dc := conf.GetDatabase()
-	db, err = database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
+	// dc := conf.GetDatabase()
+	// db, err = database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
 
-	if err != nil {
-		logger.Error("與資料庫連線時發生錯誤, err: %+v", err)
-		return
-	}
+	// if err != nil {
+	// 	logger.Error("與資料庫連線時發生錯誤, err: %+v", err)
+	// 	return
+	// }
 
-	defer db.Close()
-	db = database.Get(0)
+	// defer db.Close()
+	// db = database.Get(0)
 
-	if db == nil {
-		logger.Error("Database(0) is not exists.")
-		return
-	}
+	// if db == nil {
+	// 	logger.Error("Database(0) is not exists.")
+	// 	return
+	// }
 
 	tableParams := stmt.NewTableParam()
 	// fmt.Printf("tableParams: %v\n", tableParams)
@@ -118,6 +118,36 @@ INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES
 (NULL, 'microsoft', https://www.microsoft.com/, 4, 'US');
 */
 func InsertDemo() {
+	insert := table.GetInserter()
+	insert.Insert([]string{"NULL", "'Google'", "'https://www.google.com/'", "1", "'US'"})
+	insert.Insert([]string{"NULL", "'Facebook'", "'https://www.facebook.com/'", "2", "'US'"})
+	insert.Insert([]string{"NULL", "'apple'", "'https://www.apple.com/'", "3", "'US'"})
+	insert.Insert([]string{"NULL", "'microsoft'", "'https://www.microsoft.com/'", "4", "'US'"})
+	sql, err = insert.ToStmt()
+	table.PutInserter(insert)
+
+	if err != nil {
+		fmt.Printf("Insert err: %+v\n", err)
+		return
+	}
+
+	fmt.Printf("insert1 sql: %s\n", sql)
+
+	insert = table.GetInserter()
+	insert.Insert([]string{"NULL", "'Google'", "'https://www.google.com/'", "1", "'US'"})
+	insert.Insert([]string{"NULL", "'Facebook'", "'https://www.facebook.com/'", "2", "'US'"})
+	insert.Insert([]string{"NULL", "'apple'", "'https://www.apple.com/'", "3", "'US'"})
+	insert.Insert([]string{"NULL", "'microsoft'", "'https://www.microsoft.com/'", "4", "'US'"})
+	sql, err = insert.ToStmt()
+	table.PutInserter(insert)
+
+	if err != nil {
+		fmt.Printf("Insert err: %+v\n", err)
+		return
+	}
+
+	fmt.Printf("insert2 sql: %s\n", sql)
+
 	table.Insert([]string{"NULL", "'Google'", "'https://www.google.com/'", "1", "'US'"})
 	table.Insert([]string{"NULL", "'Facebook'", "'https://www.facebook.com/'", "2", "'US'"})
 	table.Insert([]string{"NULL", "'apple'", "'https://www.apple.com/'", "3", "'US'"})
@@ -127,42 +157,66 @@ func InsertDemo() {
 		fmt.Printf("Insert err: %+v\n", err)
 		return
 	}
-	fmt.Printf("sql: %s\n", sql)
+	/* INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES
+	(NULL, 'Google', 'https://www.google.com/', 1, 'US'),
+	(NULL, 'Facebook', 'https://www.facebook.com/', 2, 'US'),
+	(NULL, 'apple', 'https://www.apple.com/', 3, 'US'),
+	(NULL, 'microsoft', 'https://www.microsoft.com/', 4, 'US');*/
+	fmt.Printf("table sql: %s\n", sql)
 
-	result, err = db.Exec(sql)
+	// result, err = db.Exec(sql)
 
-	if err != nil {
-		fmt.Printf("Insert Exec err: %+v\n", err)
-		return
-	}
+	// if err != nil {
+	// 	fmt.Printf("Insert Exec err: %+v\n", err)
+	// 	return
+	// }
 
-	fmt.Printf("result: %s\n", result)
+	// fmt.Printf("result: %s\n", result)
 }
 
 // SELECT * FROM `Websites`;
 func QueryDemo() {
+	selector := table.GetSelector()
+	sql, err = selector.ToStmt()
+	if err != nil {
+		fmt.Printf("Select err: %+v\n", err)
+		return
+	}
+	fmt.Printf("selector sql: %s\n", sql)
+	table.PutSelector(selector)
+
 	sql, err = table.BuildSelectStmt()
 	if err != nil {
 		fmt.Printf("Select err: %+v\n", err)
 		return
 	}
-	fmt.Printf("sql: %s\n", sql)
+	fmt.Printf("table sql: %s\n", sql)
 
-	result, err = db.Query(sql)
+	// result, err = db.Query(sql)
 
-	if err != nil {
-		fmt.Printf("Query Exec err: %+v\n", err)
-		return
-	}
+	// if err != nil {
+	// 	fmt.Printf("Query Exec err: %+v\n", err)
+	// 	return
+	// }
 
-	fmt.Printf("result: %s\n", result)
-	for i, data := range result.Datas {
-		fmt.Printf("%d) data: %+v\n", i, data)
-	}
+	// fmt.Printf("result: %s\n", result)
+	// for i, data := range result.Datas {
+	// 	fmt.Printf("%d) data: %+v\n", i, data)
+	// }
 }
 
 // UPDATE `Websites` SET `alexa` = 5000 WHERE `id` = 3;
 func UpdateDemo() {
+	updater := table.GetUpdater()
+	updater.Update("alexa", "5000")
+	updater.SetCondition(stmt.WS().Eq("id", "3"))
+	sql, err = updater.ToStmt()
+	if err != nil {
+		fmt.Printf("Update err: %+v\n", err)
+		return
+	}
+	fmt.Printf("updater sql: %s\n", sql)
+
 	table.Update("alexa", "5000")
 	table.SetUpdateCondition(stmt.WS().Eq("id", "3"))
 	sql, err = table.BuildUpdateStmt()
@@ -171,20 +225,29 @@ func UpdateDemo() {
 		fmt.Printf("Update err: %+v\n", err)
 		return
 	}
-	fmt.Printf("sql: %s\n", sql)
+	fmt.Printf("table sql: %s\n", sql)
 
-	result, err = db.Exec(sql)
+	// result, err = db.Exec(sql)
 
-	if err != nil {
-		fmt.Printf("Update Exec err: %+v\n", err)
-		return
-	}
+	// if err != nil {
+	// 	fmt.Printf("Update Exec err: %+v\n", err)
+	// 	return
+	// }
 
-	fmt.Printf("result: %s\n", result)
+	// fmt.Printf("result: %s\n", result)
 }
 
 // DELETE FROM `Websites` WHERE `name` = Facebook;
 func DeleteDemo() {
+	deleter := table.GetDeleter()
+	deleter.SetCondition(stmt.WS().Eq("name", "'Facebook'"))
+	sql, err = deleter.ToStmt()
+	if err != nil {
+		fmt.Printf("Delete err: %+v\n", err)
+		return
+	}
+	fmt.Printf("deleter sql: %s\n", sql)
+
 	table.SetDeleteCondition(stmt.WS().Eq("name", "'Facebook'"))
 	sql, err = table.BuildDeleteStmt()
 
@@ -192,14 +255,14 @@ func DeleteDemo() {
 		fmt.Printf("Delete err: %+v\n", err)
 		return
 	}
-	fmt.Printf("sql: %s\n", sql)
+	fmt.Printf("table sql: %s\n", sql)
 
-	result, err = db.Exec(sql)
+	// result, err = db.Exec(sql)
 
-	if err != nil {
-		fmt.Printf("Delete Exec err: %+v\n", err)
-		return
-	}
+	// if err != nil {
+	// 	fmt.Printf("Delete Exec err: %+v\n", err)
+	// 	return
+	// }
 
-	fmt.Printf("result: %s\n", result)
+	// fmt.Printf("result: %s\n", result)
 }

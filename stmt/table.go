@@ -2,6 +2,7 @@ package stmt
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/j32u4ukh/cntr"
 	"github.com/pkg/errors"
@@ -15,6 +16,10 @@ type Table struct {
 	*DeleteStmt
 	ColumnNames *cntr.Array[string]
 	nColumn     int32
+	insertPool  *sync.Pool
+	queryPool   *sync.Pool
+	updatePool  *sync.Pool
+	deletePool  *sync.Pool
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,6 +33,26 @@ func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, 
 		UpdateStmt:  NewUpdateStmt(name),
 		DeleteStmt:  NewDeleteStmt(name),
 		ColumnNames: cntr.NewArray[string](),
+	}
+	t.insertPool = &sync.Pool{
+		New: func() any {
+			return NewInsertStmt(name)
+		},
+	}
+	t.queryPool = &sync.Pool{
+		New: func() any {
+			return NewSelectStmt(name)
+		},
+	}
+	t.updatePool = &sync.Pool{
+		New: func() any {
+			return NewUpdateStmt(name)
+		},
+	}
+	t.deletePool = &sync.Pool{
+		New: func() any {
+			return NewDeleteStmt(name)
+		},
 	}
 	if len(t.CreateStmt.Columns) > 0 {
 		// 會自行賦值的欄位也需填入 NULL，因此所有欄位名稱都要求填入
@@ -94,6 +119,21 @@ func (t *Table) BuildCreateStmt() (string, error) {
 // Insert
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (t *Table) GetInserter() *InsertStmt {
+	insert := t.insertPool.Get().(*InsertStmt)
+	insert.SetDbName(t.CreateStmt.DbName)
+	if insert.ColumnStmt == "" {
+		fmt.Println("SetColumnNames")
+		insert.SetColumnNames(t.ColumnNames.Elements)
+	}
+	return insert
+}
+
+func (t *Table) PutInserter(s *InsertStmt) {
+	s.Release()
+	t.insertPool.Put(s)
+}
+
 func (t *Table) BuildInsertStmt() (string, error) {
 	sql, err := t.InsertStmt.ToStmt()
 	t.InsertStmt.Release()
@@ -108,6 +148,18 @@ func (t *Table) BuildInsertStmt() (string, error) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Select
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (t *Table) GetSelector() *SelectStmt {
+	selector := t.queryPool.Get().(*SelectStmt)
+	selector.SetDbName(t.CreateStmt.DbName)
+	return selector
+}
+
+func (t *Table) PutSelector(s *SelectStmt) {
+	s.Release()
+	t.queryPool.Put(s)
+}
+
 func (t *Table) SetSelectCondition(where *WhereStmt) {
 	t.SelectStmt.SetCondition(where)
 }
@@ -124,6 +176,17 @@ func (t *Table) BuildSelectStmt() (string, error) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (t *Table) GetUpdater() *UpdateStmt {
+	updater := t.updatePool.Get().(*UpdateStmt)
+	updater.SetDbName(t.CreateStmt.DbName)
+	return updater
+}
+
+func (t *Table) PutUpdater(s *UpdateStmt) {
+	s.Release()
+	t.updatePool.Put(s)
+}
 
 func (t *Table) SetUpdateCondition(where *WhereStmt) {
 	t.UpdateStmt.SetCondition(where)
@@ -143,6 +206,18 @@ func (t *Table) BuildUpdateStmt() (string, error) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Delete
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (t *Table) GetDeleter() *DeleteStmt {
+	deleter := t.deletePool.Get().(*DeleteStmt)
+	deleter.SetDbName(t.CreateStmt.DbName)
+	return deleter
+}
+
+func (t *Table) PutDeleter(s *DeleteStmt) {
+	s.Release()
+	t.deletePool.Put(s)
+}
+
 func (t *Table) SetDeleteCondition(where *WhereStmt) {
 	t.DeleteStmt.SetCondition(where)
 }

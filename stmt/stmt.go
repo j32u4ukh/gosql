@@ -11,6 +11,7 @@ const (
 	DbDelete
 	DbInsert
 	DbUpdate
+	DbCreate
 )
 
 type IStatement interface {

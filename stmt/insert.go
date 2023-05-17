@@ -16,8 +16,9 @@ type InsertStmt struct {
 
 func NewInsertStmt(tableName string) *InsertStmt {
 	s := &InsertStmt{
-		TableName: tableName,
-		datas:     [][]string{},
+		TableName:  tableName,
+		ColumnStmt: "",
+		datas:      [][]string{},
 	}
 	return s
 }
