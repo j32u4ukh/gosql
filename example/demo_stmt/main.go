@@ -10,6 +10,7 @@ import (
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/stmt/gosql"
 )
 
 const TID byte = 0
@@ -20,32 +21,33 @@ var result *database.SqlResult
 var err error
 var logger *glog.Logger
 var table *stmt.Table
+var gTable *gosql.Table
 
 func main() {
 	command := strings.ToLower(os.Args[1])
-	// logger = glog.GetLogger("../log", "demo_stmt", glog.DebugLevel, false)
-	// conf, err := database.NewConfig("../config/config.yaml")
+	logger = glog.GetLogger("../log", "demo_stmt", glog.DebugLevel, false)
+	conf, err := database.NewConfig("../config/config.yaml")
 
-	// if err != nil {
-	// 	logger.Error("讀取 Config 檔時發生錯誤, err: %+v\n", err)
-	// 	return
-	// }
+	if err != nil {
+		logger.Error("讀取 Config 檔時發生錯誤, err: %+v\n", err)
+		return
+	}
 
-	// dc := conf.GetDatabase()
-	// db, err = database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
+	dc := conf.GetDatabase()
+	db, err = database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
 
-	// if err != nil {
-	// 	logger.Error("與資料庫連線時發生錯誤, err: %+v", err)
-	// 	return
-	// }
+	if err != nil {
+		logger.Error("與資料庫連線時發生錯誤, err: %+v", err)
+		return
+	}
 
-	// defer db.Close()
-	// db = database.Get(0)
+	defer db.Close()
+	db = database.Get(0)
 
-	// if db == nil {
-	// 	logger.Error("Database(0) is not exists.")
-	// 	return
-	// }
+	if db == nil {
+		logger.Error("Database(0) is not exists.")
+		return
+	}
 
 	tableParams := stmt.NewTableParam()
 	// fmt.Printf("tableParams: %v\n", tableParams)
@@ -64,6 +66,8 @@ func main() {
 	// 	fmt.Printf("%d) %+v\n", i, col)
 	// }
 	table = stmt.NewTable("Websites", tableParams, colParams, stmt.ENGINE, stmt.COLLATE)
+	gTable = gosql.NewTable("Websites", tableParams, colParams, stmt.ENGINE, stmt.COLLATE)
+	gTable.SetDb(db)
 
 	switch command {
 	case "c":
@@ -118,13 +122,12 @@ INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES
 (NULL, 'microsoft', https://www.microsoft.com/, 4, 'US');
 */
 func InsertDemo() {
-	insert := table.GetInserter()
+	insert := gTable.GetInserter()
 	insert.Insert([]string{"NULL", "'Google'", "'https://www.google.com/'", "1", "'US'"})
 	insert.Insert([]string{"NULL", "'Facebook'", "'https://www.facebook.com/'", "2", "'US'"})
 	insert.Insert([]string{"NULL", "'apple'", "'https://www.apple.com/'", "3", "'US'"})
 	insert.Insert([]string{"NULL", "'microsoft'", "'https://www.microsoft.com/'", "4", "'US'"})
 	sql, err = insert.ToStmt()
-	table.PutInserter(insert)
 
 	if err != nil {
 		fmt.Printf("Insert err: %+v\n", err)
@@ -132,37 +135,31 @@ func InsertDemo() {
 	}
 
 	fmt.Printf("insert1 sql: %s\n", sql)
-
-	insert = table.GetInserter()
-	insert.Insert([]string{"NULL", "'Google'", "'https://www.google.com/'", "1", "'US'"})
-	insert.Insert([]string{"NULL", "'Facebook'", "'https://www.facebook.com/'", "2", "'US'"})
-	insert.Insert([]string{"NULL", "'apple'", "'https://www.apple.com/'", "3", "'US'"})
-	insert.Insert([]string{"NULL", "'microsoft'", "'https://www.microsoft.com/'", "4", "'US'"})
-	sql, err = insert.ToStmt()
-	table.PutInserter(insert)
+	result, err = insert.Exec()
 
 	if err != nil {
 		fmt.Printf("Insert err: %+v\n", err)
 		return
 	}
 
-	fmt.Printf("insert2 sql: %s\n", sql)
+	fmt.Printf("result: %+v\n", result)
+	gTable.PutInserter(insert)
 
-	table.Insert([]string{"NULL", "'Google'", "'https://www.google.com/'", "1", "'US'"})
-	table.Insert([]string{"NULL", "'Facebook'", "'https://www.facebook.com/'", "2", "'US'"})
-	table.Insert([]string{"NULL", "'apple'", "'https://www.apple.com/'", "3", "'US'"})
-	table.Insert([]string{"NULL", "'microsoft'", "'https://www.microsoft.com/'", "4", "'US'"})
-	sql, err = table.BuildInsertStmt()
-	if err != nil {
-		fmt.Printf("Insert err: %+v\n", err)
-		return
-	}
+	// table.Insert([]string{"NULL", "'Google'", "'https://www.google.com/'", "1", "'US'"})
+	// table.Insert([]string{"NULL", "'Facebook'", "'https://www.facebook.com/'", "2", "'US'"})
+	// table.Insert([]string{"NULL", "'apple'", "'https://www.apple.com/'", "3", "'US'"})
+	// table.Insert([]string{"NULL", "'microsoft'", "'https://www.microsoft.com/'", "4", "'US'"})
+	// sql, err = table.BuildInsertStmt()
+	// if err != nil {
+	// 	fmt.Printf("Insert err: %+v\n", err)
+	// 	return
+	// }
 	/* INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES
 	(NULL, 'Google', 'https://www.google.com/', 1, 'US'),
 	(NULL, 'Facebook', 'https://www.facebook.com/', 2, 'US'),
 	(NULL, 'apple', 'https://www.apple.com/', 3, 'US'),
 	(NULL, 'microsoft', 'https://www.microsoft.com/', 4, 'US');*/
-	fmt.Printf("table sql: %s\n", sql)
+	// fmt.Printf("table sql: %s\n", sql)
 
 	// result, err = db.Exec(sql)
 
@@ -176,21 +173,27 @@ func InsertDemo() {
 
 // SELECT * FROM `Websites`;
 func QueryDemo() {
-	selector := table.GetSelector()
+	selector := gTable.GetSelector()
 	sql, err = selector.ToStmt()
 	if err != nil {
 		fmt.Printf("Select err: %+v\n", err)
 		return
 	}
 	fmt.Printf("selector sql: %s\n", sql)
-	table.PutSelector(selector)
-
-	sql, err = table.BuildSelectStmt()
+	result, err = selector.Exec()
 	if err != nil {
 		fmt.Printf("Select err: %+v\n", err)
 		return
 	}
-	fmt.Printf("table sql: %s\n", sql)
+	fmt.Printf("result: %s\n", result)
+	gTable.PutSelector(selector)
+
+	// sql, err = table.BuildSelectStmt()
+	// if err != nil {
+	// 	fmt.Printf("Select err: %+v\n", err)
+	// 	return
+	// }
+	// fmt.Printf("table sql: %s\n", sql)
 
 	// result, err = db.Query(sql)
 
@@ -207,9 +210,9 @@ func QueryDemo() {
 
 // UPDATE `Websites` SET `alexa` = 5000 WHERE `id` = 3;
 func UpdateDemo() {
-	updater := table.GetUpdater()
+	updater := gTable.GetUpdater()
 	updater.Update("alexa", "5000")
-	updater.SetCondition(stmt.WS().Eq("id", "3"))
+	updater.SetCondition(stmt.WS().Eq("name", "'Facebook'"))
 	sql, err = updater.ToStmt()
 	if err != nil {
 		fmt.Printf("Update err: %+v\n", err)
@@ -217,15 +220,23 @@ func UpdateDemo() {
 	}
 	fmt.Printf("updater sql: %s\n", sql)
 
-	table.Update("alexa", "5000")
-	table.SetUpdateCondition(stmt.WS().Eq("id", "3"))
-	sql, err = table.BuildUpdateStmt()
-
+	result, err = updater.Exec()
 	if err != nil {
 		fmt.Printf("Update err: %+v\n", err)
 		return
 	}
-	fmt.Printf("table sql: %s\n", sql)
+	fmt.Printf("result: %+v\n", result)
+	gTable.PutUpdater(updater)
+
+	// table.Update("alexa", "5000")
+	// table.SetUpdateCondition(stmt.WS().Eq("id", "3"))
+	// sql, err = table.BuildUpdateStmt()
+
+	// if err != nil {
+	// 	fmt.Printf("Update err: %+v\n", err)
+	// 	return
+	// }
+	// fmt.Printf("table sql: %s\n", sql)
 
 	// result, err = db.Exec(sql)
 
@@ -239,7 +250,7 @@ func UpdateDemo() {
 
 // DELETE FROM `Websites` WHERE `name` = Facebook;
 func DeleteDemo() {
-	deleter := table.GetDeleter()
+	deleter := gTable.GetDeleter()
 	deleter.SetCondition(stmt.WS().Eq("name", "'Facebook'"))
 	sql, err = deleter.ToStmt()
 	if err != nil {
@@ -248,14 +259,22 @@ func DeleteDemo() {
 	}
 	fmt.Printf("deleter sql: %s\n", sql)
 
-	table.SetDeleteCondition(stmt.WS().Eq("name", "'Facebook'"))
-	sql, err = table.BuildDeleteStmt()
-
+	result, err = deleter.Exec()
 	if err != nil {
 		fmt.Printf("Delete err: %+v\n", err)
 		return
 	}
-	fmt.Printf("table sql: %s\n", sql)
+	fmt.Printf("result: %s\n", result)
+	gTable.PutDeleter(deleter)
+
+	// table.SetDeleteCondition(stmt.WS().Eq("name", "'Facebook'"))
+	// sql, err = table.BuildDeleteStmt()
+
+	// if err != nil {
+	// 	fmt.Printf("Delete err: %+v\n", err)
+	// 	return
+	// }
+	// fmt.Printf("table sql: %s\n", sql)
 
 	// result, err = db.Exec(sql)
 

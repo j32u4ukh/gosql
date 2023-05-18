@@ -5,10 +5,12 @@ import (
 	"sync"
 
 	"github.com/j32u4ukh/cntr"
+	"github.com/j32u4ukh/gosql/database"
 	"github.com/pkg/errors"
 )
 
 type Table struct {
+	db *database.Database
 	*CreateStmt
 	*InsertStmt
 	*SelectStmt
@@ -27,6 +29,7 @@ type Table struct {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, engine string, collate string) *Table {
 	t := &Table{
+		db:          nil,
 		CreateStmt:  NewCreateStmt(name, tableParam, columnParams, engine, collate),
 		InsertStmt:  NewInsertStmt(name),
 		SelectStmt:  NewSelectStmt(name),
@@ -65,6 +68,10 @@ func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, 
 		t.InsertStmt.SetColumnNames(t.ColumnNames.Elements)
 	}
 	return t
+}
+
+func (t *Table) SetDb(db *database.Database) {
+	t.db = db
 }
 
 func (t *Table) SetDbName(dbName string) {
