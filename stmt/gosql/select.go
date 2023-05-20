@@ -37,3 +37,12 @@ func (s *SelectStmt) Exec() (*database.SqlResult, error) {
 	}
 	return result, nil
 }
+
+func (s *SelectStmt) Query(datas *[][]string) error {
+	result, err := s.Exec()
+	if err != nil {
+		return errors.Wrap(err, "Failed to excute select statement.")
+	}
+	*datas = append(*datas, result.Datas...)
+	return nil
+}

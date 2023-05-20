@@ -31,15 +31,12 @@ func InitWebsitesTable() (table *gdo.Table) {
 	return table
 }
 
+func test(arr *[]string) {
+	*arr = append(*arr, "test")
+}
+
 func main() {
-	table := InitWebsitesTable()
-	//////////////////////////////////////////////////
-	table.Query(stmt.NewSelectItem("name"), stmt.NewSelectItem("").Concat("url", "', '", "alexa", "', '", "country").SetAlias("site_info"))
-	//////////////////////////////////////////////////
-	sql, err := table.BuildCreateStmt()
-	if err != nil {
-		fmt.Printf("BuildSelectStmt err: %+v\n", err)
-		return
-	}
-	fmt.Printf("sql: %s\n", sql)
+	arr := []string{"abs"}
+	test(&arr)
+	fmt.Printf("arr: %+v\n", arr)
 }
