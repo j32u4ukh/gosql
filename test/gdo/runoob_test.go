@@ -12,7 +12,7 @@ func TestRunoobSelect1(t *testing.T) {
 	answer := "SELECT `name`, `country` FROM `Websites`;"
 	table := InitWebsitesTable()
 	fmt.Printf("%+v\n", table)
-	table.Query(stmt.NewSelectItem("name").UseBacktick(), stmt.NewSelectItem("country").UseBacktick())
+	table.SetSelectItem(stmt.NewSelectItem("name").UseBacktick(), stmt.NewSelectItem("country").UseBacktick())
 	sql, err := table.BuildSelectStmt()
 
 	if err != nil || sql != answer {
@@ -29,7 +29,7 @@ func TestRunoobSelect1(t *testing.T) {
 func TestRunoobSelect2(t *testing.T) {
 	answer := "SELECT DISTINCT `country` FROM `Websites`;"
 	table := InitWebsitesTable()
-	table.Query(stmt.NewSelectItem("country").UseBacktick().Distinct())
+	table.SetSelectItem(stmt.NewSelectItem("country").UseBacktick().Distinct())
 	sql, err := table.BuildSelectStmt()
 
 	if err != nil || sql != answer {
@@ -351,7 +351,7 @@ func TestRunoobSelect18(t *testing.T) {
 	answer := "SELECT name AS n, country AS c FROM `Websites`;"
 	table := InitWebsitesTable()
 	//////////////////////////////////////////////////
-	table.Query(stmt.NewSelectItem("name").SetAlias("n"), stmt.NewSelectItem("country").SetAlias("c"))
+	table.SetSelectItem(stmt.NewSelectItem("name").SetAlias("n"), stmt.NewSelectItem("country").SetAlias("c"))
 	//////////////////////////////////////////////////
 	sql, err := table.BuildSelectStmt()
 
@@ -370,7 +370,7 @@ func TestRunoobSelect19(t *testing.T) {
 	answer := "SELECT name, CONCAT(url, ', ', alexa, ', ', country) AS site_info FROM `Websites`;"
 	table := InitWebsitesTable()
 	//////////////////////////////////////////////////
-	table.Query(stmt.NewSelectItem("name"), stmt.NewSelectItem("").Concat("url", "', '", "alexa", "', '", "country").SetAlias("site_info"))
+	table.SetSelectItem(stmt.NewSelectItem("name"), stmt.NewSelectItem("").Concat("url", "', '", "alexa", "', '", "country").SetAlias("site_info"))
 	//////////////////////////////////////////////////
 	sql, err := table.BuildSelectStmt()
 

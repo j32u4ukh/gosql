@@ -24,13 +24,13 @@ type Table struct {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Table
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-func NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string, dial dialect.SQLDialect) *Table {
+func NewTable(tableName string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string, dial dialect.SQLDialect) *Table {
 	t := &Table{
-		CreateStmt:       stmt.NewCreateStmt(name, tableParam, columnParams, engine, collate),
-		InsertStmt:       stmt.NewInsertStmt(name),
-		SelectStmt:       stmt.NewSelectStmt(name),
-		UpdateStmt:       stmt.NewUpdateStmt(name),
-		DeleteStmt:       stmt.NewDeleteStmt(name),
+		CreateStmt:       stmt.NewCreateStmt(tableName, tableParam, columnParams, engine, collate),
+		InsertStmt:       stmt.NewInsertStmt(tableName),
+		SelectStmt:       stmt.NewSelectStmt(tableName),
+		UpdateStmt:       stmt.NewUpdateStmt(tableName),
+		DeleteStmt:       stmt.NewDeleteStmt(tableName),
 		useAntiInjection: false,
 		ColumnNames:      cntr.NewArray[string](),
 	}

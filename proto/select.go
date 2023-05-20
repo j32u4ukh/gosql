@@ -56,7 +56,7 @@ func (t *ProtoTable) parseSelectResult(pm protoreflect.ProtoMessage, result []st
 
 // 取得符合 WhereStmt 條件的數據筆數
 func (t *ProtoTable) CountStmt(where *gdo.WhereStmt) string {
-	t.Query(stmt.NewSelectItem("*").Count())
+	t.SetSelectItem(stmt.NewSelectItem("*").Count())
 	sql, err := t.BuildSelectStmt(where)
 	if err != nil {
 		return ""

@@ -37,7 +37,7 @@ func (t *Table) InsertRawData(datas ...string) error {
 	return nil
 }
 
-func (t *Table) checkInsertData(nColumn int32) error {
+func (t *Table) checkInsertData(nData int32) error {
 	// 確保 InsertStmt 有語法生成用的欄位名稱
 	if t.nColumn == 0 {
 		t.nColumn = int32(t.ColumnNames.Length())
@@ -45,8 +45,8 @@ func (t *Table) checkInsertData(nColumn int32) error {
 	}
 
 	// 檢查輸入數據個數 與 欄位數 是否相符
-	if nColumn != t.nColumn {
-		return errors.New(fmt.Sprintf("輸入數據個數(%d)與欄位數(%d)不符", nColumn, t.nColumn))
+	if nData != t.nColumn {
+		return errors.New(fmt.Sprintf("輸入數據個數(%d)與欄位數(%d)不符", nData, t.nColumn))
 	}
 	return nil
 }

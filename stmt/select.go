@@ -39,7 +39,7 @@ func (s *SelectStmt) SetDbName(name string) *SelectStmt {
 	return s
 }
 
-func (s *SelectStmt) Query(columns ...*SelectItem) *SelectStmt {
+func (s *SelectStmt) SetSelectItem(columns ...*SelectItem) *SelectStmt {
 	s.QueryColumns = append(s.QueryColumns, columns...)
 	return s
 }
@@ -195,14 +195,14 @@ func (s *SelectItem) ToStmt() string {
 	return result
 }
 
-func FormatColumns(columns []*SelectItem) (string, error) {
-	length := len(columns)
+func FormatColumns(items []*SelectItem) (string, error) {
+	length := len(items)
 	if length == 0 {
 		return "*", nil
 	}
 	results := []string{}
-	for _, column := range columns {
-		results = append(results, column.ToStmt())
+	for _, item := range items {
+		results = append(results, item.ToStmt())
 	}
 	return strings.Join(results, ", "), nil
 }

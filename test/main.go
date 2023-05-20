@@ -35,8 +35,21 @@ func test(arr *[]string) {
 	*arr = append(*arr, "test")
 }
 
+type I struct {
+}
+
+func (s *I) F() {
+	fmt.Println("I")
+}
+
+type S struct {
+	*I
+}
+
+func (s *S) F(ss int) {
+	fmt.Println("S")
+}
 func main() {
-	arr := []string{"abs"}
-	test(&arr)
-	fmt.Printf("arr: %+v\n", arr)
+	// s := &S{I: &I{}}
+	// s.F()
 }
