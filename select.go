@@ -8,14 +8,16 @@ import (
 
 type SelectStmt struct {
 	*stmt.SelectStmt
-	db *database.Database
+	db    *database.Database
+	table *Table
 	// 是否對 SQL injection 做處理
 	useAntiInjection bool
 }
 
-func NewSelectStmt(tableName string) *SelectStmt {
+func NewSelectStmt(table *Table) *SelectStmt {
 	s := &SelectStmt{
-		SelectStmt:       stmt.NewSelectStmt(tableName),
+		table:            table,
+		SelectStmt:       stmt.NewSelectStmt(table.creater.TableName),
 		db:               nil,
 		useAntiInjection: false,
 	}

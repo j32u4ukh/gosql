@@ -11,15 +11,17 @@ import (
 
 type InsertStmt struct {
 	*stmt.InsertStmt
-	db *database.Database
+	db    *database.Database
+	table *Table
 	// 欄位數
 	nColumn          int32
 	useAntiInjection bool
 }
 
-func NewInsertStmt(tableName string) *InsertStmt {
+func NewInsertStmt(table *Table) *InsertStmt {
 	s := &InsertStmt{
-		InsertStmt:       stmt.NewInsertStmt(tableName),
+		table:            table,
+		InsertStmt:       stmt.NewInsertStmt(table.creater.TableName),
 		db:               nil,
 		nColumn:          0,
 		useAntiInjection: false,
@@ -37,11 +39,24 @@ func (s *InsertStmt) Insert(datas []any, ptrToDb func(reflect.Value, bool) strin
 		return errors.Wrap(err, "檢查輸入數據時發生錯誤")
 	}
 	var i int32
-	insertDatas := []string{}
+	var column *stmt.Column
+	data := []string{}
 	for i = 0; i < s.nColumn; i++ {
-		insertDatas = append(insertDatas, ValueToDb(reflect.ValueOf(datas[i]), s.useAntiInjection, ptrToDb))
+		column = s.table.GetColumn(i)
+
+		if column.IgnoreThis {
+			continue
+		}
+
+		switch column.Default {
+		// 資料庫自動生成欄位
+		case "current_timestamp()", "AI":
+			data = append(data, "NULL")
+		default:
+			data = append(data, ValueToDb(reflect.ValueOf(datas[i]), s.useAntiInjection, ptrToDb))
+		}
 	}
-	s.InsertStmt.Insert(insertDatas)
+	s.InsertStmt.Insert(data)
 	return nil
 }
 

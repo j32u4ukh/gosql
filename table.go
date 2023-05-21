@@ -30,32 +30,31 @@ type Table struct {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 func NewTable(tableName string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string, dial dialect.SQLDialect) *Table {
 	t := &Table{
-		ColumnNames: cntr.NewArray[string](),
-		creater:     NewCreateStmt(tableName, tableParam, columnParams, engine, collate),
-		insertPool: &sync.Pool{
-			New: func() any {
-				return NewInsertStmt(tableName)
-			},
-		},
-		queryPool: &sync.Pool{
-			New: func() any {
-				return NewSelectStmt(tableName)
-			},
-		},
-		updatePool: &sync.Pool{
-			New: func() any {
-				return NewUpdateStmt(tableName)
-			},
-		},
-		deletePool: &sync.Pool{
-			New: func() any {
-				return NewDeleteStmt(tableName)
-			},
-		},
+		ColumnNames:      cntr.NewArray[string](),
+		creater:          NewCreateStmt(tableName, tableParam, columnParams, engine, collate),
 		nColumn:          0,
 		useAntiInjection: false,
 	}
-
+	t.insertPool = &sync.Pool{
+		New: func() any {
+			return NewInsertStmt(t)
+		},
+	}
+	t.queryPool = &sync.Pool{
+		New: func() any {
+			return NewSelectStmt(t)
+		},
+	}
+	t.updatePool = &sync.Pool{
+		New: func() any {
+			return NewUpdateStmt(t)
+		},
+	}
+	t.deletePool = &sync.Pool{
+		New: func() any {
+			return NewDeleteStmt(t)
+		},
+	}
 	if len(t.creater.Columns) > 0 {
 		// 會自行賦值的欄位也需填入 NULL，因此所有欄位名稱都要求填入
 		for _, column := range t.creater.Columns {

@@ -11,12 +11,14 @@ import (
 type UpdateStmt struct {
 	*stmt.UpdateStmt
 	db               *database.Database
+	table            *Table
 	useAntiInjection bool
 }
 
-func NewUpdateStmt(tableName string) *UpdateStmt {
+func NewUpdateStmt(table *Table) *UpdateStmt {
 	s := &UpdateStmt{
-		UpdateStmt: stmt.NewUpdateStmt(tableName),
+		table:      table,
+		UpdateStmt: stmt.NewUpdateStmt(table.creater.DbName),
 		db:         nil,
 	}
 	return s

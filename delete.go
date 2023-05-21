@@ -9,12 +9,14 @@ import (
 type DeleteStmt struct {
 	*stmt.DeleteStmt
 	db               *database.Database
+	table            *Table
 	useAntiInjection bool
 }
 
-func NewDeleteStmt(tableName string) *DeleteStmt {
+func NewDeleteStmt(table *Table) *DeleteStmt {
 	s := &DeleteStmt{
-		DeleteStmt:       stmt.NewDeleteStmt(tableName),
+		table:            table,
+		DeleteStmt:       stmt.NewDeleteStmt(table.creater.TableName),
 		db:               nil,
 		useAntiInjection: false,
 	}
