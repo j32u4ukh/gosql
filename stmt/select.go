@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/j32u4ukh/gosql/database"
 	"github.com/pkg/errors"
 )
 
@@ -18,6 +19,7 @@ type SelectStmt struct {
 	OrderType string
 	Limit     int32
 	Offset    int32
+	db        *database.Database
 }
 
 func NewSelectStmt(tableName string) *SelectStmt {
@@ -30,8 +32,13 @@ func NewSelectStmt(tableName string) *SelectStmt {
 		OrderType:    "",
 		Limit:        -1,
 		Offset:       0,
+		db:           nil,
 	}
 	return s
+}
+
+func (s *SelectStmt) SetDb(db *database.Database) {
+	s.db = db
 }
 
 func (s *SelectStmt) SetDbName(name string) *SelectStmt {
@@ -153,56 +160,26 @@ func (s *SelectStmt) ToStmt() (string, error) {
 	return sql, nil
 }
 
-type SelectItem struct {
-	Name  string
-	Alias string
-}
-
-func NewSelectItem(name string) *SelectItem {
-	return &SelectItem{Name: name}
-}
-
-func (s *SelectItem) UseBacktick() *SelectItem {
-	s.Name = fmt.Sprintf("`%s`", s.Name)
-	return s
-}
-
-func (s *SelectItem) SetAlias(alias string) *SelectItem {
-	s.Alias = alias
-	return s
-}
-
-func (s *SelectItem) Count() *SelectItem {
-	s.Name = fmt.Sprintf("COUNT(%s)", s.Name)
-	return s
-}
-
-func (s *SelectItem) Distinct() *SelectItem {
-	s.Name = fmt.Sprintf("DISTINCT %s", s.Name)
-	return s
-}
-
-func (s *SelectItem) Concat(elements ...string) *SelectItem {
-	s.Name = fmt.Sprintf("CONCAT(%s)", strings.Join(elements, ", "))
-	return s
-}
-
-func (s *SelectItem) ToStmt() string {
-	result := s.Name
-	if s.Alias != "" {
-		result = fmt.Sprintf("%s AS %s", result, s.Alias)
+func (s *SelectStmt) Exec() (*database.SqlResult, error) {
+	if s.db == nil {
+		return nil, errors.New("Undefine database.")
 	}
-	return result
+	sql, err := s.ToStmt()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to generate select statement.")
+	}
+	result, err := s.db.Query(sql)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to excute select statement.")
+	}
+	return result, nil
 }
 
-func FormatColumns(items []*SelectItem) (string, error) {
-	length := len(items)
-	if length == 0 {
-		return "*", nil
+func (s *SelectStmt) Query(datas *[][]string) error {
+	result, err := s.Exec()
+	if err != nil {
+		return errors.Wrap(err, "Failed to excute select statement.")
 	}
-	results := []string{}
-	for _, item := range items {
-		results = append(results, item.ToStmt())
-	}
-	return strings.Join(results, ", "), nil
+	*datas = append(*datas, result.Datas...)
+	return nil
 }

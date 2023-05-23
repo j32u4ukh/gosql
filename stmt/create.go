@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/j32u4ukh/cntr"
+	"github.com/j32u4ukh/gosql/database"
+	"github.com/pkg/errors"
 )
 
 // CREATE DATABASE `PVP` /*!40100 COLLATE 'utf8mb4_bin' */
@@ -15,6 +17,7 @@ type CreateStmt struct {
 	Columns    []*Column
 	Engine     string
 	Collate    string
+	db         *database.Database
 }
 
 func NewCreateStmt(name string, tableParam *TableParam, columnParams []*ColumnParam, engine string, collate string) *CreateStmt {
@@ -25,8 +28,8 @@ func NewCreateStmt(name string, tableParam *TableParam, columnParams []*ColumnPa
 		Columns:    []*Column{},
 		Engine:     engine,
 		Collate:    collate,
+		db:         nil,
 	}
-
 	if columnParams != nil {
 		var column *Column
 		for _, param := range columnParams {
@@ -36,6 +39,14 @@ func NewCreateStmt(name string, tableParam *TableParam, columnParams []*ColumnPa
 		}
 	}
 	return s
+}
+
+func (s *CreateStmt) SetDb(db *database.Database) {
+	s.db = db
+}
+
+func (s *CreateStmt) GetDb() *database.Database {
+	return s.db
 }
 
 func (s *CreateStmt) SetDbName(dbName string) *CreateStmt {
@@ -159,6 +170,21 @@ func (s *CreateStmt) ToStmt() (string, error) {
 	)
 
 	return sql, nil
+}
+
+func (s *CreateStmt) Exec() (*database.SqlResult, error) {
+	if s.db == nil {
+		return nil, errors.New("Undefine database.")
+	}
+	sql, err := s.ToStmt()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to generate create statement.")
+	}
+	result, err := s.db.Exec(sql)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to excute create statement.")
+	}
+	return result, nil
 }
 
 func (s *CreateStmt) Clone() *CreateStmt {

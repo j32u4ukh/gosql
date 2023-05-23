@@ -3,6 +3,7 @@ package stmt
 import (
 	"fmt"
 
+	"github.com/j32u4ukh/gosql/database"
 	"github.com/pkg/errors"
 )
 
@@ -12,6 +13,7 @@ type DeleteStmt struct {
 	Where  *WhereStmt
 	// 是否允許不設置 Where 條件? 若不設置會 刪除資料表中所有的資料，需額外允許才有作用
 	allowEmptyWhere bool
+	db              *database.Database
 }
 
 func NewDeleteStmt(name string) *DeleteStmt {
@@ -20,8 +22,13 @@ func NewDeleteStmt(name string) *DeleteStmt {
 		Name:            name,
 		Where:           &WhereStmt{},
 		allowEmptyWhere: false,
+		db:              nil,
 	}
 	return s
+}
+
+func (s *DeleteStmt) SetDb(db *database.Database) {
+	s.db = db
 }
 
 func (s *DeleteStmt) SetDbName(dbName string) *DeleteStmt {
@@ -70,4 +77,19 @@ func (s *DeleteStmt) ToStmt() (string, error) {
 	}
 	sql := fmt.Sprintf("DELETE FROM %s%s;", tableName, where)
 	return sql, nil
+}
+
+func (s *DeleteStmt) Exec() (*database.SqlResult, error) {
+	if s.db == nil {
+		return nil, errors.New("Undefine database.")
+	}
+	sql, err := s.ToStmt()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to generate delete statement.")
+	}
+	result, err := s.db.Exec(sql)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to excute delete statement.")
+	}
+	return result, nil
 }
