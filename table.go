@@ -2,12 +2,14 @@ package gosql
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
 
 	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 	"github.com/pkg/errors"
 )
 
@@ -23,6 +25,11 @@ type Table struct {
 	nColumn int32
 	// 是否對 SQL injection 做處理
 	useAntiInjection bool
+	// ===== 處理函式備份 =====
+	insertFunc    func(data any) error
+	queryFunc     func(*database.SqlResult, *any) error
+	updateAnyFunc func(any, int32, func(idx int32) *stmt.Column, func(key string, field reflect.Value))
+	ptrToDbFunc   func(reflect.Value, bool) string
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,25 +41,27 @@ func NewTable(tableName string, tableParam *stmt.TableParam, columnParams []*stm
 		creater:          NewCreateStmt(tableName, tableParam, columnParams, engine, collate),
 		nColumn:          0,
 		useAntiInjection: false,
+		insertFunc:       nil,
+		queryFunc:        nil,
 	}
 	t.insertPool = &sync.Pool{
 		New: func() any {
-			return NewInsertStmt(t)
+			return NewInsertStmt(tableName, t.GetColumn)
 		},
 	}
 	t.queryPool = &sync.Pool{
 		New: func() any {
-			return NewSelectStmt(t)
+			return NewSelectStmt(tableName)
 		},
 	}
 	t.updatePool = &sync.Pool{
 		New: func() any {
-			return NewUpdateStmt(t)
+			return NewUpdateStmt(tableName, t.GetColumn)
 		},
 	}
 	t.deletePool = &sync.Pool{
 		New: func() any {
-			return NewDeleteStmt(t)
+			return NewDeleteStmt(tableName)
 		},
 	}
 	if len(t.creater.Columns) > 0 {
@@ -61,23 +70,32 @@ func NewTable(tableName string, tableParam *stmt.TableParam, columnParams []*stm
 			if column.IgnoreThis {
 				continue
 			}
-			t.ColumnNames.Append(column.Name)
+			utils.Debug("name: %s, default: %s", column.Name, column.Default)
+			switch column.Default {
+			// 資料庫自動生成欄位
+			case "current_timestamp()", "AI":
+				continue
+			default:
+				t.ColumnNames.Append(column.Name)
+			}
 		}
 		t.nColumn = int32(t.ColumnNames.Length())
 	}
 	return t
 }
 
-func (t *Table) SetDbName(dbName string) {
-	t.creater.SetDbName(dbName)
-}
-
-func (t *Table) SetDb(db *database.Database) {
+func (t *Table) Init(db *database.Database, dbName string, useAntiInjection bool,
+	insertFunc func(data any) error,
+	queryFunc func(*database.SqlResult, *any) error,
+	updateAnyFunc func(obj any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value)),
+	ptrToDbFunc func(reflect.Value, bool) string) {
 	t.creater.SetDb(db)
-}
-
-func (t *Table) UseAntiInjection(active bool) {
-	t.useAntiInjection = active
+	t.creater.SetDbName(dbName)
+	t.useAntiInjection = useAntiInjection
+	t.insertFunc = insertFunc
+	t.queryFunc = queryFunc
+	t.updateAnyFunc = updateAnyFunc
+	t.ptrToDbFunc = ptrToDbFunc
 }
 
 func (t *Table) String() string {
@@ -154,14 +172,22 @@ func (t *Table) GetIndexByName(name string) int32 {
 // Insert
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 func (t *Table) GetInserter() *InsertStmt {
-	insert := t.insertPool.Get().(*InsertStmt)
-	insert.SetDb(t.creater.db)
-	insert.SetDbName(t.creater.DbName)
-	insert.UseAntiInjection(t.useAntiInjection)
-	if insert.ColumnStmt == "" {
-		insert.SetColumnNames(t.ColumnNames.Elements)
+	inserter := t.insertPool.Get().(*InsertStmt)
+	if !inserter.inited {
+		inserter.SetDb(t.creater.GetDb())
+		inserter.SetDbName(t.creater.DbName)
+		inserter.UseAntiInjection(t.useAntiInjection)
+		inserter.SetColumnNumber(t.nColumn)
+		inserter.SetFuncPtrToDb(t.ptrToDbFunc)
+		if t.insertFunc != nil {
+			inserter.SetFuncInsert(t.insertFunc)
+		}
+		inserter.inited = true
 	}
-	return insert
+	if inserter.ColumnStmt == "" {
+		inserter.SetColumnNames(t.ColumnNames.Elements)
+	}
+	return inserter
 }
 
 func (t *Table) PutInserter(s *InsertStmt) {
@@ -175,9 +201,15 @@ func (t *Table) PutInserter(s *InsertStmt) {
 
 func (t *Table) GetSelector() *SelectStmt {
 	selector := t.queryPool.Get().(*SelectStmt)
-	selector.SetDb(t.creater.db)
-	selector.SetDbName(t.creater.DbName)
-	selector.UseAntiInjection(t.useAntiInjection)
+	if !selector.inited {
+		selector.SetDb(t.creater.GetDb())
+		selector.SetDbName(t.creater.DbName)
+		selector.UseAntiInjection(t.useAntiInjection)
+		if t.queryFunc != nil {
+			selector.SetFuncQuery(t.queryFunc)
+		}
+		selector.inited = true
+	}
 	return selector
 }
 
@@ -192,9 +224,17 @@ func (t *Table) PutSelector(s *SelectStmt) {
 
 func (t *Table) GetUpdater() *UpdateStmt {
 	updater := t.updatePool.Get().(*UpdateStmt)
-	updater.SetDb(t.creater.db)
-	updater.SetDbName(t.creater.DbName)
-	updater.UseAntiInjection(t.useAntiInjection)
+	if !updater.inited {
+		updater.SetDb(t.creater.GetDb())
+		updater.SetDbName(t.creater.DbName)
+		updater.UseAntiInjection(t.useAntiInjection)
+		updater.SetColumnNumber(t.nColumn)
+		updater.SetFuncPtrToDb(t.ptrToDbFunc)
+		if t.updateAnyFunc != nil {
+			updater.SetFuncUpdateAny(t.updateAnyFunc)
+		}
+		updater.inited = true
+	}
 	return updater
 }
 
@@ -209,9 +249,12 @@ func (t *Table) PutUpdater(s *UpdateStmt) {
 
 func (t *Table) GetDeleter() *DeleteStmt {
 	deleter := t.deletePool.Get().(*DeleteStmt)
-	deleter.SetDb(t.creater.db)
-	deleter.SetDbName(t.creater.DbName)
-	deleter.UseAntiInjection(t.useAntiInjection)
+	if !deleter.inited {
+		deleter.SetDb(t.creater.GetDb())
+		deleter.SetDbName(t.creater.DbName)
+		deleter.UseAntiInjection(t.useAntiInjection)
+		deleter.inited = true
+	}
 	return deleter
 }
 

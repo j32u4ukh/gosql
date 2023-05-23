@@ -4,45 +4,51 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/pkg/errors"
 )
 
 type InsertStmt struct {
 	*stmt.InsertStmt
-	db    *database.Database
-	table *Table
 	// 欄位數
 	nColumn          int32
 	useAntiInjection bool
+	inited           bool
+	// table 提供的函式
+	getColumnFunc func(idx int32) *stmt.Column
+	// 不同數據結構各自定義
+	insertFunc  func(data any) error
+	ptrToDbFunc func(reflect.Value, bool) string
 }
 
-func NewInsertStmt(table *Table) *InsertStmt {
+func NewInsertStmt(tableName string, getColumnFunc func(idx int32) *stmt.Column) *InsertStmt {
 	s := &InsertStmt{
-		table:            table,
-		InsertStmt:       stmt.NewInsertStmt(table.creater.TableName),
-		db:               nil,
+		InsertStmt:       stmt.NewInsertStmt(tableName),
 		nColumn:          0,
 		useAntiInjection: false,
+		inited:           false,
+		getColumnFunc:    getColumnFunc,
+		ptrToDbFunc:      nil,
 	}
+	s.insertFunc = s.insert
 	return s
 }
 
-func (s *InsertStmt) SetDb(db *database.Database) {
-	s.db = db
+func (s *InsertStmt) Insert(data any) error {
+	return s.insertFunc(data)
 }
 
-func (s *InsertStmt) Insert(datas []any, ptrToDb func(reflect.Value, bool) string) error {
+func (s *InsertStmt) insert(data any) error {
+	datas := data.([]any)
 	err := s.checkInsertData(int32(len(datas)))
 	if err != nil {
 		return errors.Wrap(err, "檢查輸入數據時發生錯誤")
 	}
 	var i int32
 	var column *stmt.Column
-	data := []string{}
+	strData := []string{}
 	for i = 0; i < s.nColumn; i++ {
-		column = s.table.GetColumn(i)
+		column = s.getColumnFunc(i)
 
 		if column.IgnoreThis {
 			continue
@@ -51,12 +57,12 @@ func (s *InsertStmt) Insert(datas []any, ptrToDb func(reflect.Value, bool) strin
 		switch column.Default {
 		// 資料庫自動生成欄位
 		case "current_timestamp()", "AI":
-			data = append(data, "NULL")
+			strData = append(strData, "NULL")
 		default:
-			data = append(data, ValueToDb(reflect.ValueOf(datas[i]), s.useAntiInjection, ptrToDb))
+			strData = append(strData, ValueToDb(reflect.ValueOf(datas[i]), s.useAntiInjection, s.ptrToDbFunc))
 		}
 	}
-	s.InsertStmt.Insert(data)
+	s.InsertStmt.Insert(strData)
 	return nil
 }
 
@@ -82,21 +88,18 @@ func (s *InsertStmt) checkInsertData(nData int32) error {
 	return nil
 }
 
+func (s *InsertStmt) SetColumnNumber(nColumn int32) {
+	s.nColumn = nColumn
+}
+
 func (s *InsertStmt) UseAntiInjection(use bool) {
 	s.useAntiInjection = use
 }
 
-func (s *InsertStmt) Exec() (*database.SqlResult, error) {
-	if s.db == nil {
-		return nil, errors.New("Undefine database.")
-	}
-	sql, err := s.InsertStmt.ToStmt()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to generate insert statement.")
-	}
-	result, err := s.db.Exec(sql)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to excute insert statement.")
-	}
-	return result, nil
+func (s *InsertStmt) SetFuncInsert(insertFunc func(data any) error) {
+	s.insertFunc = insertFunc
+}
+
+func (s *InsertStmt) SetFuncPtrToDb(ptrToDbFunc func(reflect.Value, bool) string) {
+	s.ptrToDbFunc = ptrToDbFunc
 }

@@ -10,10 +10,7 @@ import (
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
-	"github.com/j32u4ukh/gosql/stmt/gosql"
 )
-
-const TID byte = 0
 
 var db *database.Database
 var sql string
@@ -21,7 +18,6 @@ var result *database.SqlResult
 var err error
 var logger *glog.Logger
 var table *stmt.Table
-var gTable *gosql.Table
 
 func main() {
 	command := strings.ToLower(os.Args[1])
@@ -66,8 +62,7 @@ func main() {
 	// 	fmt.Printf("%d) %+v\n", i, col)
 	// }
 	table = stmt.NewTable("Websites", tableParams, colParams, stmt.ENGINE, stmt.COLLATE)
-	gTable = gosql.NewTable("Websites", tableParams, colParams, stmt.ENGINE, stmt.COLLATE)
-	gTable.SetDb(db)
+	table.SetDb(db)
 
 	switch command {
 	case "c":
@@ -85,34 +80,15 @@ func main() {
 	}
 }
 
-/*
-CREATE TABLE IF NOT EXISTS `Websites` (
-	`id` INT(11) NOT NULL AUTO_INCREMENT,
-	`name` VARCHAR(3000) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin',
-	`url` VARCHAR(50) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin',
-	`alexa` INT(11) NOT NULL DEFAULT 0,
-	`contury` VARCHAR(3000) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin',
-	PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';
-
-CREATE TABLE IF NOT EXISTS `Websites` (
-	`id` INT(11) NOT NULL AUTO_INCREMENT,
-	`name` VARCHAR(50) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin',
-	`url` VARCHAR(50) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin',
-	`alexa` INT(11) NOT NULL DEFAULT 0,
-	`contury` VARCHAR(50) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin',
-	PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';
-*/
 func CreateDemo() {
-	sql, err = gTable.Creater().ToStmt()
+	sql, err = table.Creater().ToStmt()
 
 	if err != nil {
 		fmt.Printf("Create err: %+v\n", err)
 		return
 	}
 	fmt.Printf("Creater sql: %s\n", sql)
-	result, err = gTable.Creater().Exec()
+	result, err = table.Creater().Exec()
 
 	if err != nil {
 		fmt.Printf("Create err: %+v\n", err)
@@ -129,7 +105,7 @@ INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES
 (NULL, 'microsoft', https://www.microsoft.com/, 4, 'US');
 */
 func InsertDemo() {
-	insert := gTable.GetInserter()
+	insert := table.GetInserter()
 	insert.Insert([]string{"NULL", "'Google'", "'https://www.google.com/'", "1", "'US'"})
 	insert.Insert([]string{"NULL", "'Facebook'", "'https://www.facebook.com/'", "2", "'US'"})
 	insert.Insert([]string{"NULL", "'apple'", "'https://www.apple.com/'", "3", "'US'"})
@@ -150,12 +126,12 @@ func InsertDemo() {
 	}
 
 	fmt.Printf("result: %+v\n", result)
-	gTable.PutInserter(insert)
+	table.PutInserter(insert)
 }
 
 // SELECT * FROM `Websites`;
 func QueryDemo() {
-	selector := gTable.GetSelector()
+	selector := table.GetSelector()
 	sql, err = selector.ToStmt()
 	if err != nil {
 		fmt.Printf("Select err: %+v\n", err)
@@ -172,12 +148,12 @@ func QueryDemo() {
 	datas := [][]string{}
 	selector.Query(&datas)
 	fmt.Printf("datas: %+v\n", datas)
-	gTable.PutSelector(selector)
+	table.PutSelector(selector)
 }
 
 // UPDATE `Websites` SET `alexa` = 5000 WHERE `id` = 3;
 func UpdateDemo() {
-	updater := gTable.GetUpdater()
+	updater := table.GetUpdater()
 	updater.Update("alexa", "5000")
 	updater.SetCondition(stmt.WS().Eq("name", "'Facebook'"))
 	sql, err = updater.ToStmt()
@@ -193,12 +169,12 @@ func UpdateDemo() {
 		return
 	}
 	fmt.Printf("result: %+v\n", result)
-	gTable.PutUpdater(updater)
+	table.PutUpdater(updater)
 }
 
 // DELETE FROM `Websites` WHERE `name` = Facebook;
 func DeleteDemo() {
-	deleter := gTable.GetDeleter()
+	deleter := table.GetDeleter()
 	deleter.SetCondition(stmt.WS().Eq("name", "'Facebook'"))
 	sql, err = deleter.ToStmt()
 	if err != nil {
@@ -213,5 +189,5 @@ func DeleteDemo() {
 		return
 	}
 	fmt.Printf("result: %s\n", result)
-	gTable.PutDeleter(deleter)
+	table.PutDeleter(deleter)
 }

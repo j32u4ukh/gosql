@@ -4,18 +4,19 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/j32u4ukh/gosql"
 	"github.com/j32u4ukh/gosql/database"
-	"github.com/j32u4ukh/gosql/example/pbgo"
-	"github.com/j32u4ukh/gosql/gdo"
-	"github.com/j32u4ukh/gosql/proto"
+	"github.com/j32u4ukh/gosql/obj"
 	"github.com/j32u4ukh/gosql/proto/gstmt"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+type Tsukue struct {
+	Id      int    `gorm:"pk=default"`
+	Content string `gorm:"size=3000"`
+}
 
 const TID byte = 0
 
@@ -25,6 +26,11 @@ var sql string
 var result *database.SqlResult
 var err error
 var table *gosql.Table
+
+func InitTable() *gosql.Table {
+
+	return table
+}
 
 func main() {
 	command := strings.ToLower(os.Args[1])
@@ -36,29 +42,29 @@ func main() {
 	}
 
 	dc := conf.GetDatabase()
-	db, err = database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
+	// db, err = database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
 
+	// if err != nil {
+	// 	fmt.Printf("與資料庫連線時發生錯誤, err: %+v\n", err)
+	// 	return
+	// }
+
+	// defer db.Close()
+	// db = database.Get(0)
+
+	// if db == nil {
+	// 	fmt.Println("Database(0) is not exists.")
+	// 	return
+	// }
+
+	desk := &Tsukue{}
+	tableParams, columnParams, err := obj.GetStructParams(desk, dialect.MARIA)
+	table = gosql.NewTable("Desk", tableParams, columnParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	table.Init(db, dc.Name, true, nil, nil, obj.UpdateStruct, nil)
 	if err != nil {
-		fmt.Printf("與資料庫連線時發生錯誤, err: %+v\n", err)
+		fmt.Printf("BuildCreateStmt err: %+v\n", err)
 		return
 	}
-
-	defer db.Close()
-	db = database.Get(0)
-
-	if db == nil {
-		fmt.Println("Database(0) is not exists.")
-		return
-	}
-
-	tableParam, columnParams, err := proto.GetParams("../pb", "Desk", dialect.MARIA)
-
-	if err != nil {
-		fmt.Printf("讀取 proto 檔時發生錯誤, err: %+v\n", err)
-		return
-	}
-
-	table = gosql.NewTable(dc.Name, tableParam, columnParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
 
 	switch command {
 	case "c":
@@ -76,6 +82,13 @@ func main() {
 	}
 }
 
+/*
+CREATE TABLE IF NOT EXISTS `pekomiko`.`Desk` (
+	`Id` INT(11) NOT NULL DEFAULT 0,
+	`Content` VARCHAR(3000) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin',
+	PRIMARY KEY (`Id`) USING BTREE
+) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';
+*/
 func CreateDemo() {
 	sql, err = table.Creater().ToStmt()
 	if err != nil {
@@ -85,128 +98,70 @@ func CreateDemo() {
 	fmt.Printf("sql: %s\n", sql)
 }
 
+// INSERT INTO `pekomiko`.`Desk` (`Id`, `Content`) VALUES (0, 'abc');
 func InsertDemo() {
-	insert := table.GetInserter()
+	inserter := table.GetInserter()
+	desk := &Tsukue{Id: 0, Content: "abc"}
+	err = inserter.Insert([]any{desk.Id, desk.Content})
 
 	if err != nil {
-		fmt.Printf("Create err: %+v\n", err)
+		fmt.Printf("Insert err: %+v\n", err)
 		return
 	}
 
-	var i int32
-	start := time.Now()
+	sql, err = inserter.ToStmt()
 
-	for i = 0; i < 5; i++ {
-		// insert.Insert()
-		sql, err = insert.ToStmt()
-		sql, err = gs.Insert(TID, []protoreflect.ProtoMessage{&pbgo.Desk{
-			UserName: "2",
-			ItemId:   i,
-		}})
-
-		if err != nil {
-			fmt.Printf("Error: %+v", err)
-			return
-		}
-
-		result, err = db.Exec(sql)
-
-		if err != nil {
-			fmt.Printf("Insert Exec err: %+v\n", err)
-			return
-		}
-
-		// fmt.Printf("result: %s\n", result)
+	if err != nil {
+		fmt.Printf("Insert err: %+v\n", err)
+		return
 	}
 
-	fmt.Printf("Cost time: %+v\n", time.Since(start))
+	fmt.Printf("sql: %s\n", sql)
+	table.PutInserter(inserter)
 }
 
 func QueryDemo() {
-	sql, err = gs.CreateTable(0, "../pb", "Desk")
-
-	if err != nil {
-		fmt.Printf("Create err: %+v\n", err)
-		return
-	}
-
-	start := time.Now()
-	where := gdo.WS().Ne("index", -1)
-	sql, err = gs.Query(TID, where)
+	selector := table.GetSelector()
+	where := gosql.WS().Ne("Id", -1)
+	selector.SetCondition(where)
+	sql, err = selector.ToStmt()
 
 	if err != nil {
 		fmt.Printf("Error: %+v\n", err)
 	}
 
 	fmt.Printf("QueryDemo | sql: %s\n", sql)
-	result, err = db.Query(sql)
-
-	if err != nil {
-		fmt.Printf("Query Exec err: %+v\n", err)
-		return
-	}
-	fmt.Printf("result: %s\n", result)
-	fmt.Printf("Cost time: %+v, count: %d\n", time.Since(start), result.NRow)
+	table.PutSelector(selector)
 }
 
 func UpdateDemo() {
-	sql, err = gs.CreateTable(0, "../pb", "Desk")
+	updater := table.GetUpdater()
+	desk := &Tsukue{Id: 0, Content: "abc"}
+	where := gosql.WS().Eq("Id", desk.Id)
+	updater.UpdateAny(desk)
+	updater.SetCondition(where)
+	sql, err = updater.ToStmt()
 
 	if err != nil {
-		fmt.Printf("Create err: %+v\n", err)
+		fmt.Printf("Update err: %+v\n", err)
 		return
 	}
 
-	var i int32
-	start := time.Now()
-	var desk *pbgo.Desk
-
-	for i = 0; i < 100; i++ {
-		desk = &pbgo.Desk{
-			Index:    i + 1,
-			UserName: "test1",
-			ItemId:   i,
-		}
-
-		sql, err = gs.Update(TID, desk, gdo.WS().Eq("index", desk.Index))
-
-		if err != nil {
-			fmt.Printf("Update item_id(%d) Error: %+v\n", i, err)
-			return
-		}
-
-		_, err = db.Exec(sql)
-
-		if err != nil {
-			fmt.Printf("Update Exec err: %+v\n", err)
-			return
-		}
-	}
-
-	fmt.Printf("Cost time: %+v\n", time.Since(start))
+	fmt.Printf("sql: %s\n", sql)
+	table.PutUpdater(updater)
 }
 
 func DeleteDemo() {
-	sql, err = gs.CreateTable(0, "../pb", "Desk")
+	deleter := table.GetDeleter()
+	where := gosql.WS().Eq("index", 3)
+	deleter.SetCondition(where)
+	sql, err = deleter.ToStmt()
 
 	if err != nil {
 		fmt.Printf("Create err: %+v\n", err)
 		return
 	}
 
-	sql, err = gs.DeleteBy(TID, gdo.WS().Eq("index", 3))
-
-	if err != nil {
-		fmt.Printf("Delete Error: %+v\n", err)
-		return
-	}
-
-	result, err = db.Exec(sql)
-
-	if err != nil {
-		fmt.Printf("Create Exec err: %+v\n", err)
-		return
-	}
-
-	fmt.Printf("result: %s\n", result)
+	fmt.Printf("sql: %s\n", sql)
+	table.PutDeleter(deleter)
 }

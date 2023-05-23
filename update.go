@@ -3,37 +3,54 @@ package gosql
 import (
 	"reflect"
 
-	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/stmt"
-	"github.com/pkg/errors"
 )
 
 type UpdateStmt struct {
 	*stmt.UpdateStmt
-	db               *database.Database
-	table            *Table
 	useAntiInjection bool
+	inited           bool
+	nColumn          int32
+	ptrToDbFunc      func(reflect.Value, bool) string
+	updateAnyFunc    func(obj any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value))
+	// table 提供的函式
+	getColumnFunc func(idx int32) *stmt.Column
 }
 
-func NewUpdateStmt(table *Table) *UpdateStmt {
+func NewUpdateStmt(tableName string, getColumnFunc func(idx int32) *stmt.Column) *UpdateStmt {
 	s := &UpdateStmt{
-		table:      table,
-		UpdateStmt: stmt.NewUpdateStmt(table.creater.DbName),
-		db:         nil,
+		UpdateStmt:    stmt.NewUpdateStmt(tableName),
+		inited:        false,
+		nColumn:       0,
+		ptrToDbFunc:   nil,
+		updateAnyFunc: nil,
+		getColumnFunc: getColumnFunc,
 	}
 	return s
 }
 
-func (s *UpdateStmt) SetDb(db *database.Database) {
-	s.db = db
+func (s *UpdateStmt) SetColumnNumber(nColumn int32) {
+	s.nColumn = nColumn
+}
+
+func (s *UpdateStmt) GetColumnNumber() int32 {
+	return s.nColumn
 }
 
 func (s *UpdateStmt) SetCondition(where *WhereStmt) {
 	s.Where = where.ToStmtWhere()
 }
 
-func (s *UpdateStmt) Update(key string, value any, ptrToDb func(reflect.Value, bool) string) {
-	s.UpdateStmt.Update(key, ValueToDb(reflect.ValueOf(value), s.useAntiInjection, ptrToDb))
+func (s *UpdateStmt) Update(key string, value any) {
+	s.UpdateStmt.Update(key, ValueToDb(reflect.ValueOf(value), s.useAntiInjection, s.ptrToDbFunc))
+}
+
+func (s *UpdateStmt) UpdateAny(obj any) {
+	s.updateAnyFunc(obj, s.nColumn, s.getColumnFunc, s.updateField)
+}
+
+func (s *UpdateStmt) updateField(key string, field reflect.Value) {
+	s.UpdateRawData(key, ValueToDb(field, s.useAntiInjection, s.ptrToDbFunc))
 }
 
 func (s *UpdateStmt) UseAntiInjection(use bool) {
@@ -44,17 +61,10 @@ func (s *UpdateStmt) UpdateRawData(key string, value string) {
 	s.UpdateStmt.Update(key, value)
 }
 
-func (s *UpdateStmt) Exec() (*database.SqlResult, error) {
-	if s.db == nil {
-		return nil, errors.New("Undefine database.")
-	}
-	sql, err := s.UpdateStmt.ToStmt()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to generate update statement.")
-	}
-	result, err := s.db.Exec(sql)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to excute update statement.")
-	}
-	return result, nil
+func (s *UpdateStmt) SetFuncPtrToDb(ptrToDbFunc func(reflect.Value, bool) string) {
+	s.ptrToDbFunc = ptrToDbFunc
+}
+
+func (s *UpdateStmt) SetFuncUpdateAny(updateAnyFunc func(obj any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value))) {
+	s.updateAnyFunc = updateAnyFunc
 }

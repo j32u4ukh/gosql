@@ -1,0 +1,91 @@
+package obj
+
+import (
+	"fmt"
+	"reflect"
+	"strings"
+
+	"github.com/j32u4ukh/gosql/stmt"
+	"github.com/j32u4ukh/gosql/stmt/datatype"
+	"github.com/j32u4ukh/gosql/stmt/dialect"
+)
+
+// 讀取 Struct 的 tag
+func GetStructParams(data any, dial dialect.SQLDialect) (*stmt.TableParam, []*stmt.ColumnParam, error) {
+	rv := reflect.ValueOf(data)
+	var rt reflect.Type
+
+	if rv.Kind() == reflect.Ptr {
+		rt = rv.Elem().Type()
+	} else {
+		rt = reflect.TypeOf(data)
+	}
+
+	tableParam := stmt.NewTableParam()
+	columnParams := []*stmt.ColumnParam{}
+	var tpc *stmt.TableParamConfig
+	var cpc *stmt.ColumnParamConfig
+
+	for i := 0; i < rt.NumField(); i++ {
+		field := rt.Field(i)
+		columnParam := stmt.NewColumnParam(i, field.Name, datatype.DataType(field.Type.Kind().String()), dial)
+		config, ok := field.Tag.Lookup("gorm")
+
+		if ok {
+			tpc, cpc, _ = stmt.ParseConfig(field.Name, config)
+			tableParam.LoadConfig(tpc)
+			columnParam.LoadConfig(cpc)
+		} else {
+			fmt.Printf("No tag found for field %s\n", field.Name)
+		}
+
+		columnParam.Redefine()
+		columnParams = append(columnParams, columnParam)
+	}
+
+	return tableParam, columnParams, nil
+}
+
+func UpdateStruct(obj any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value)) {
+	var rv, field reflect.Value
+	var column *stmt.Column
+	var i int32
+	rv = reflect.ValueOf(obj).Elem()
+
+	// 遍歷每一欄位
+	for i = 0; i < nColumn; i++ {
+		field = rv.FieldByIndex([]int{int(i)})
+		// fmt.Printf("(t *ProtoTable) Update | field: %+v\n", field)
+		column = getColumnFunc(i)
+
+		if column.IgnoreThis {
+			continue
+		}
+
+		switch column.Default {
+		// 有值也不更新
+		// timestamp 類型可透過設置 OnUpdate 來更新時間戳
+		case "current_timestamp()", "AI":
+			continue
+
+		default:
+			updateFunc(column.Name, field)
+		}
+	}
+}
+
+func StructToDb(field reflect.Value, useAntiInjection bool) string {
+	m := field.Interface().(ISqlStruct)
+	return m.ToStmt()
+}
+
+func GetTagName(tag string) (string, bool) {
+	pairs := strings.Split(tag, ",")
+	for _, pair := range pairs {
+		k, v, ok := strings.Cut(pair, "=")
+		if ok && k == "name" {
+			return v, true
+		}
+	}
+	return "", false
+}
