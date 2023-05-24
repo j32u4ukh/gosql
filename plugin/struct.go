@@ -1,4 +1,4 @@
-package obj
+package plugin
 
 import (
 	"fmt"
@@ -46,11 +46,41 @@ func GetStructParams(data any, dial dialect.SQLDialect) (*stmt.TableParam, []*st
 	return tableParam, columnParams, nil
 }
 
-func UpdateStruct(obj any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value)) {
+func InsertStruct(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error {
 	var rv, field reflect.Value
 	var column *stmt.Column
 	var i int32
-	rv = reflect.ValueOf(obj).Elem()
+
+	rv = reflect.ValueOf(data).Elem()
+	values := []string{}
+
+	for i = 0; i < nColumn; i++ {
+		column = getColumnFunc(i)
+
+		if column.IgnoreThis {
+			continue
+		}
+
+		switch column.Default {
+		// 資料庫自動生成欄位
+		case "current_timestamp()", "AI":
+			continue
+		default:
+			field = rv.FieldByIndex([]int{int(i)})
+			values = append(values, toStringFunc(field))
+		}
+	}
+
+	// 將一筆數據加入 insert 緩存(數據來自 struct，所有欄位一定都有，不須再做檢查)
+	insertFunc(values)
+	return nil
+}
+
+func UpdateStruct(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value)) {
+	var rv, field reflect.Value
+	var column *stmt.Column
+	var i int32
+	rv = reflect.ValueOf(data).Elem()
 
 	// 遍歷每一欄位
 	for i = 0; i < nColumn; i++ {

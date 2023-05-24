@@ -17,7 +17,7 @@ type InsertStmt struct {
 	// table 提供的函式
 	getColumnFunc func(idx int32) *stmt.Column
 	// 不同數據結構各自定義
-	insertFunc  func(data any) error
+	insertFunc  func(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error
 	ptrToDbFunc func(reflect.Value, bool) string
 }
 
@@ -35,10 +35,10 @@ func NewInsertStmt(tableName string, getColumnFunc func(idx int32) *stmt.Column)
 }
 
 func (s *InsertStmt) Insert(data any) error {
-	return s.insertFunc(data)
+	return s.insertFunc(data, s.nColumn, s.getColumnFunc, s.toStringFunc, s.InsertRawData)
 }
 
-func (s *InsertStmt) insert(data any) error {
+func (s *InsertStmt) insert(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error {
 	datas := data.([]any)
 	err := s.checkInsertData(int32(len(datas)))
 	if err != nil {
@@ -47,19 +47,14 @@ func (s *InsertStmt) insert(data any) error {
 	strData := []string{}
 	var d any
 	for _, d = range datas {
-		strData = append(strData, ValueToDb(reflect.ValueOf(d), s.useAntiInjection, s.ptrToDbFunc))
+		strData = append(strData, toStringFunc(reflect.ValueOf(d)))
 	}
-	s.InsertStmt.Insert(strData)
+	insertFunc(strData)
 	return nil
 }
 
-func (s *InsertStmt) InsertRawData(datas []string) error {
-	err := s.checkInsertData(int32(len(datas)))
-	if err != nil {
-		return errors.Wrap(err, "檢查輸入數據時發生錯誤")
-	}
+func (s *InsertStmt) InsertRawData(datas []string) {
 	s.InsertStmt.Insert(datas)
-	return nil
 }
 
 func (s *InsertStmt) checkInsertData(nData int32) error {
@@ -83,10 +78,14 @@ func (s *InsertStmt) UseAntiInjection(use bool) {
 	s.useAntiInjection = use
 }
 
-func (s *InsertStmt) SetFuncInsert(insertFunc func(data any) error) {
+func (s *InsertStmt) SetFuncInsert(insertFunc func(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error) {
 	s.insertFunc = insertFunc
 }
 
 func (s *InsertStmt) SetFuncPtrToDb(ptrToDbFunc func(reflect.Value, bool) string) {
 	s.ptrToDbFunc = ptrToDbFunc
+}
+
+func (s *InsertStmt) toStringFunc(v reflect.Value) string {
+	return ValueToDb(v, s.useAntiInjection, s.ptrToDbFunc)
 }

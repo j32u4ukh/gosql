@@ -13,6 +13,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+type TableConfig struct {
+	Db               *database.Database
+	DbName           string
+	UseAntiInjection bool
+	InsertFunc       func(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error
+	QueryFunc        func(*database.SqlResult, *any) error
+	UpdateAnyFunc    func(obj any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value))
+	PtrToDbFunc      func(reflect.Value, bool) string
+}
+
 type Table struct {
 	creater    *CreateStmt
 	insertPool *sync.Pool
@@ -26,7 +36,7 @@ type Table struct {
 	// 是否對 SQL injection 做處理
 	useAntiInjection bool
 	// ===== 處理函式備份 =====
-	insertFunc    func(data any) error
+	insertFunc    func(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error
 	queryFunc     func(*database.SqlResult, *any) error
 	updateAnyFunc func(any, int32, func(idx int32) *stmt.Column, func(key string, field reflect.Value))
 	ptrToDbFunc   func(reflect.Value, bool) string
@@ -64,7 +74,8 @@ func NewTable(tableName string, tableParam *stmt.TableParam, columnParams []*stm
 			return NewDeleteStmt(tableName)
 		},
 	}
-	if len(t.creater.Columns) > 0 {
+	t.nColumn = int32(len(t.creater.Columns))
+	if t.nColumn > 0 {
 		// 會自行賦值的欄位也需填入 NULL，因此所有欄位名稱都要求填入
 		for _, column := range t.creater.Columns {
 			if column.IgnoreThis {
@@ -79,23 +90,18 @@ func NewTable(tableName string, tableParam *stmt.TableParam, columnParams []*stm
 				t.ColumnNames.Append(column.Name)
 			}
 		}
-		t.nColumn = int32(t.ColumnNames.Length())
 	}
 	return t
 }
 
-func (t *Table) Init(db *database.Database, dbName string, useAntiInjection bool,
-	insertFunc func(data any) error,
-	queryFunc func(*database.SqlResult, *any) error,
-	updateAnyFunc func(obj any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value)),
-	ptrToDbFunc func(reflect.Value, bool) string) {
-	t.creater.SetDb(db)
-	t.creater.SetDbName(dbName)
-	t.useAntiInjection = useAntiInjection
-	t.insertFunc = insertFunc
-	t.queryFunc = queryFunc
-	t.updateAnyFunc = updateAnyFunc
-	t.ptrToDbFunc = ptrToDbFunc
+func (t *Table) Init(config *TableConfig) {
+	t.creater.SetDb(config.Db)
+	t.creater.SetDbName(config.DbName)
+	t.useAntiInjection = config.UseAntiInjection
+	t.insertFunc = config.InsertFunc
+	t.queryFunc = config.QueryFunc
+	t.updateAnyFunc = config.UpdateAnyFunc
+	t.ptrToDbFunc = config.PtrToDbFunc
 }
 
 func (t *Table) String() string {
@@ -121,7 +127,7 @@ func (t *Table) AddColumn(column *stmt.Column) *Table {
 	if !t.ColumnNames.Contains(column.Name) {
 		t.creater.AddColumn(column)
 		t.ColumnNames.Append(column.Name)
-		t.nColumn = int32(t.ColumnNames.Length())
+		t.nColumn = int32(len(t.creater.Columns))
 	}
 	return t
 }

@@ -53,7 +53,13 @@ func main() {
 	desk := &Tsukue{}
 	tableParams, columnParams, err := plugin.GetStructParams(desk, dialect.MARIA)
 	table = gosql.NewTable("Desk", tableParams, columnParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
-	table.Init(&gosql.TableConfig{Db: db, DbName: dc.Name})
+	table.Init(&gosql.TableConfig{
+		Db:               db,
+		DbName:           dc.Name,
+		UseAntiInjection: false,
+		InsertFunc:       plugin.InsertStruct,
+		UpdateAnyFunc:    plugin.UpdateStruct,
+	})
 	if err != nil {
 		fmt.Printf("BuildCreateStmt err: %+v\n", err)
 		return
@@ -103,7 +109,7 @@ func CreateDemo() {
 func InsertDemo() {
 	inserter := table.GetInserter()
 	desk := &Tsukue{Id: 0, Content: "abc"}
-	err = inserter.Insert([]any{desk.Content})
+	err = inserter.Insert(desk)
 
 	if err != nil {
 		fmt.Printf("Insert err: %+v\n", err)
@@ -153,7 +159,7 @@ func QueryDemo() {
 
 func UpdateDemo() {
 	updater := table.GetUpdater()
-	where := gosql.WS().Eq("Id", 1)
+	where := gosql.WS().Eq("Id", 2)
 	updater.Update("Content", "def")
 	updater.SetCondition(where)
 	sql, err = updater.ToStmt()
