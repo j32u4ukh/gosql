@@ -44,23 +44,10 @@ func (s *InsertStmt) insert(data any) error {
 	if err != nil {
 		return errors.Wrap(err, "檢查輸入數據時發生錯誤")
 	}
-	var i int32
-	var column *stmt.Column
 	strData := []string{}
-	for i = 0; i < s.nColumn; i++ {
-		column = s.getColumnFunc(i)
-
-		if column.IgnoreThis {
-			continue
-		}
-
-		switch column.Default {
-		// 資料庫自動生成欄位
-		case "current_timestamp()", "AI":
-			strData = append(strData, "NULL")
-		default:
-			strData = append(strData, ValueToDb(reflect.ValueOf(datas[i]), s.useAntiInjection, s.ptrToDbFunc))
-		}
+	var d any
+	for _, d = range datas {
+		strData = append(strData, ValueToDb(reflect.ValueOf(d), s.useAntiInjection, s.ptrToDbFunc))
 	}
 	s.InsertStmt.Insert(strData)
 	return nil
