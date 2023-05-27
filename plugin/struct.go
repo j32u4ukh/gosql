@@ -78,20 +78,23 @@ func InsertStruct(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.C
 	return nil
 }
 
-func QueryStructFunc(datas [][]string, objs *[]any) error {
+func QueryStructFunc(datas [][]string, generator func() any) (objs []any, err error) {
 	var i, length int32 = 0, int32(len(datas))
-	var err error
+	objs = make([]any, length)
+	var obj any
 	for i = 0; i < length; i++ {
-		err = queryStructFunc(datas[i], (*objs)[i])
+		obj, err = queryStructFunc(datas[i], generator)
 		if err != nil {
-			return errors.Wrapf(err, "解析回傳數據時發生錯誤, result: %s", cntr.SliceToString(datas[i]))
+			return nil, errors.Wrapf(err, "解析回傳數據時發生錯誤, result: %s", cntr.SliceToString(datas[i]))
 		}
+		objs[i] = obj
 	}
-	return nil
+	return objs, nil
 }
 
-func queryStructFunc(data []string, obj any) error {
+func queryStructFunc(data []string, generator func() any) (obj any, err error) {
 	var filed reflect.Value
+	obj = generator()
 	rv := reflect.ValueOf(obj).Elem()
 	for i, d := range data {
 		if d == "" {
@@ -100,7 +103,7 @@ func queryStructFunc(data []string, obj any) error {
 		filed = rv.FieldByIndex([]int{i})
 		SetValue(filed, d, nil)
 	}
-	return nil
+	return obj, nil
 }
 
 func UpdateStruct(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value)) {

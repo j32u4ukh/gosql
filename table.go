@@ -18,7 +18,7 @@ type TableConfig struct {
 	DbName           string
 	UseAntiInjection bool
 	InsertFunc       func(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error
-	QueryFunc        func(datas [][]string, objs *[]any) error
+	QueryFunc        func(datas [][]string, generator func() any) (objs []any, err error)
 	UpdateAnyFunc    func(obj any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value))
 	PtrToDbFunc      func(reflect.Value, bool) string
 }
@@ -37,7 +37,7 @@ type Table struct {
 	useAntiInjection bool
 	// ===== 處理函式備份 =====
 	insertFunc    func(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error
-	queryFunc     func(datas [][]string, objs *[]any) error
+	queryFunc     func(datas [][]string, generator func() any) (objs []any, err error)
 	updateAnyFunc func(any, int32, func(idx int32) *stmt.Column, func(key string, field reflect.Value))
 	ptrToDbFunc   func(reflect.Value, bool) string
 }

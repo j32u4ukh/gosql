@@ -10,7 +10,7 @@ type SelectStmt struct {
 	inited bool
 	// 是否對 SQL injection 做處理
 	useAntiInjection bool
-	queryFunc        func(datas [][]string, objs *[]any) error
+	queryFunc        func(datas [][]string, generator func() any) (objs []any, err error)
 }
 
 func NewSelectStmt(tableName string) *SelectStmt {
@@ -34,22 +34,30 @@ func (s *SelectStmt) UseAntiInjection(use bool) {
 	s.useAntiInjection = use
 }
 
-func (s *SelectStmt) Query(objs *[]any) error {
+func (s *SelectStmt) Query(generator func() any) (objs []any, err error) {
 	result, err := s.Exec()
 	if err != nil {
-		return errors.Wrap(err, "Failed to excute select statement.")
+		return nil, errors.Wrap(err, "Failed to excute select statement.")
 	}
-	s.queryFunc(result.Datas, objs)
-	return nil
+	objs, err = s.queryFunc(result.Datas, generator)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to excute select statement.")
+	}
+	return objs, nil
 }
 
-func (s *SelectStmt) query(datas [][]string, objs *[]any) error {
-	var obj any = objs
-	results := (obj).(*[][]string)
-	*results = append(*results, datas...)
-	return nil
+func (s *SelectStmt) query(datas [][]string, generator func() any) (objs []any, err error) {
+	length := len(datas)
+	objs = make([]any, length)
+	var temp []string
+	for i, data := range datas {
+		temp = []string{}
+		temp = append(temp, data...)
+		objs[i] = temp
+	}
+	return objs, nil
 }
 
-func (s *SelectStmt) SetFuncQuery(queryFunc func(datas [][]string, objs *[]any) error) {
+func (s *SelectStmt) SetFuncQuery(queryFunc func(datas [][]string, generator func() any) (objs []any, err error)) {
 	s.queryFunc = queryFunc
 }

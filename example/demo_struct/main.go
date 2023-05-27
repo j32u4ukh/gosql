@@ -91,8 +91,12 @@ func Test() {
 		{"2", "def"},
 		{"3", "ghi"},
 	}
-	desks := plugin.Make(3, func() any { return &Tsukue{} })
-	plugin.QueryStructFunc(datas, &desks)
+	// desks := plugin.Make(3, func() any { return &Tsukue{} })
+	desks, err := plugin.QueryStructFunc(datas, func() any { return &Tsukue{} })
+	if err != nil {
+		fmt.Printf("Failed to QueryStructFunc.")
+		return
+	}
 	for _, desk := range desks {
 		fmt.Printf("desk: %+v\n", desk)
 	}
@@ -163,23 +167,17 @@ func QueryDemo() {
 	}
 
 	fmt.Printf("QueryDemo | sql: %s\n", sql)
-	result, err = selector.Exec()
+
+	desks, err := selector.Query(func() any { return &Tsukue{} })
 
 	if err != nil {
-		fmt.Printf("Query err: %+v\n", err)
-		return
+		fmt.Printf("Error: %+v\n", err)
 	}
 
-	fmt.Printf("result: %+v\n", result)
-	for _, data := range result.Datas {
-		fmt.Printf("data: %+v\n", data)
-	}
-
-	desks := plugin.Make(int(result.NRow), func() any { return &Tsukue{} })
-	selector.Query(&desks)
 	for _, desk := range desks {
 		fmt.Printf("desk: %+v\n", desk)
 	}
+
 	table.PutSelector(selector)
 }
 
