@@ -98,6 +98,7 @@ func (s *InsertStmt) Exec() (*database.SqlResult, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to generate insert statement.")
 	}
+	s.Release()
 	result, err := s.db.Exec(sql)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to excute insert statement.")

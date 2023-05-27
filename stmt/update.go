@@ -109,6 +109,7 @@ func (s *UpdateStmt) Exec() (*database.SqlResult, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to generate update statement.")
 	}
+	s.Release()
 	result, err := s.db.Exec(sql)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to excute update statement.")

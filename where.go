@@ -3,6 +3,7 @@ package gosql
 import (
 	"reflect"
 
+	"github.com/j32u4ukh/gosql/plugin"
 	"github.com/j32u4ukh/gosql/stmt"
 )
 
@@ -15,7 +16,7 @@ type WhereStmt struct {
 	ands             []*WhereStmt
 	ors              []*WhereStmt
 	// 將變數反射為 SQL 數值的函式
-	valueToDbFunc ValueToDbFunc
+	valueToDbFunc plugin.ValueToDbFunc
 }
 
 func WS() *WhereStmt {
@@ -26,7 +27,7 @@ func WS() *WhereStmt {
 		useAntiInjection: false,
 		ands:             []*WhereStmt{},
 		ors:              []*WhereStmt{},
-		valueToDbFunc:    ValueToDb,
+		valueToDbFunc:    plugin.ValueToDb,
 	}
 	return s
 }

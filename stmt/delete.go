@@ -87,6 +87,7 @@ func (s *DeleteStmt) Exec() (*database.SqlResult, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to generate delete statement.")
 	}
+	s.Release()
 	result, err := s.db.Exec(sql)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to excute delete statement.")

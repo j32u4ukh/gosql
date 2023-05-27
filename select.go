@@ -1,7 +1,6 @@
 package gosql
 
 import (
-	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/pkg/errors"
 )
@@ -11,7 +10,7 @@ type SelectStmt struct {
 	inited bool
 	// 是否對 SQL injection 做處理
 	useAntiInjection bool
-	queryFunc        func(*database.SqlResult, *any) error
+	queryFunc        func(datas [][]string, objs *[]any) error
 }
 
 func NewSelectStmt(tableName string) *SelectStmt {
@@ -35,21 +34,22 @@ func (s *SelectStmt) UseAntiInjection(use bool) {
 	s.useAntiInjection = use
 }
 
-func (s *SelectStmt) Query(datas *any) error {
+func (s *SelectStmt) Query(objs *[]any) error {
 	result, err := s.Exec()
 	if err != nil {
 		return errors.Wrap(err, "Failed to excute select statement.")
 	}
-	s.queryFunc(result, datas)
+	s.queryFunc(result.Datas, objs)
 	return nil
 }
 
-func (s *SelectStmt) query(result *database.SqlResult, datas *any) error {
-	results := (*datas).(*[][]string)
-	*results = append(*results, result.Datas...)
+func (s *SelectStmt) query(datas [][]string, objs *[]any) error {
+	var obj any = objs
+	results := (obj).(*[][]string)
+	*results = append(*results, datas...)
 	return nil
 }
 
-func (s *SelectStmt) SetFuncQuery(queryFunc func(*database.SqlResult, *any) error) {
+func (s *SelectStmt) SetFuncQuery(queryFunc func(datas [][]string, objs *[]any) error) {
 	s.queryFunc = queryFunc
 }

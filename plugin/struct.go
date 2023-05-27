@@ -5,9 +5,11 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/pkg/errors"
 )
 
 // 讀取 Struct 的 tag
@@ -73,6 +75,31 @@ func InsertStruct(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.C
 
 	// 將一筆數據加入 insert 緩存(數據來自 struct，所有欄位一定都有，不須再做檢查)
 	insertFunc(values)
+	return nil
+}
+
+func QueryStructFunc(datas [][]string, objs *[]any) error {
+	var i, length int32 = 0, int32(len(datas))
+	var err error
+	for i = 0; i < length; i++ {
+		err = queryStructFunc(datas[i], (*objs)[i])
+		if err != nil {
+			return errors.Wrapf(err, "解析回傳數據時發生錯誤, result: %s", cntr.SliceToString(datas[i]))
+		}
+	}
+	return nil
+}
+
+func queryStructFunc(data []string, obj any) error {
+	var filed reflect.Value
+	rv := reflect.ValueOf(obj).Elem()
+	for i, d := range data {
+		if d == "" {
+			continue
+		}
+		filed = rv.FieldByIndex([]int{i})
+		SetValue(filed, d, nil)
+	}
 	return nil
 }
 

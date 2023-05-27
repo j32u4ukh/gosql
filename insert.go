@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/j32u4ukh/gosql/plugin"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/pkg/errors"
 )
@@ -87,5 +88,5 @@ func (s *InsertStmt) SetFuncPtrToDb(ptrToDbFunc func(reflect.Value, bool) string
 }
 
 func (s *InsertStmt) toStringFunc(v reflect.Value) string {
-	return ValueToDb(v, s.useAntiInjection, s.ptrToDbFunc)
+	return plugin.ValueToDb(v, s.useAntiInjection, s.ptrToDbFunc)
 }

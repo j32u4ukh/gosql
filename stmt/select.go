@@ -168,6 +168,7 @@ func (s *SelectStmt) Exec() (*database.SqlResult, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to generate select statement.")
 	}
+	s.Release()
 	result, err := s.db.Query(sql)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to excute select statement.")

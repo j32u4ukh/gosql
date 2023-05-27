@@ -3,6 +3,7 @@ package gosql
 import (
 	"reflect"
 
+	"github.com/j32u4ukh/gosql/plugin"
 	"github.com/j32u4ukh/gosql/stmt"
 )
 
@@ -42,7 +43,7 @@ func (s *UpdateStmt) SetCondition(where *WhereStmt) {
 }
 
 func (s *UpdateStmt) Update(key string, value any) {
-	s.UpdateStmt.Update(key, ValueToDb(reflect.ValueOf(value), s.useAntiInjection, s.ptrToDbFunc))
+	s.UpdateStmt.Update(key, plugin.ValueToDb(reflect.ValueOf(value), s.useAntiInjection, s.ptrToDbFunc))
 }
 
 func (s *UpdateStmt) UpdateAny(obj any) {
@@ -50,7 +51,7 @@ func (s *UpdateStmt) UpdateAny(obj any) {
 }
 
 func (s *UpdateStmt) updateField(key string, field reflect.Value) {
-	s.UpdateRawData(key, ValueToDb(field, s.useAntiInjection, s.ptrToDbFunc))
+	s.UpdateRawData(key, plugin.ValueToDb(field, s.useAntiInjection, s.ptrToDbFunc))
 }
 
 func (s *UpdateStmt) UseAntiInjection(use bool) {

@@ -53,12 +53,14 @@ func main() {
 	desk := &Tsukue{}
 	tableParams, columnParams, err := plugin.GetStructParams(desk, dialect.MARIA)
 	table = gosql.NewTable("Desk", tableParams, columnParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	// QueryFunc        func(*database.SqlResult, *any) error
 	table.Init(&gosql.TableConfig{
 		Db:               db,
 		DbName:           dc.Name,
 		UseAntiInjection: false,
 		InsertFunc:       plugin.InsertStruct,
 		UpdateAnyFunc:    plugin.UpdateStruct,
+		QueryFunc:        plugin.QueryStructFunc,
 	})
 	if err != nil {
 		fmt.Printf("BuildCreateStmt err: %+v\n", err)
@@ -76,8 +78,23 @@ func main() {
 		UpdateDemo()
 	case "d":
 		DeleteDemo()
+	case "t":
+		Test()
 	default:
 		fmt.Printf("No invalid command(%s).\n", command)
+	}
+}
+
+func Test() {
+	datas := [][]string{
+		{"1", "abc"},
+		{"2", "def"},
+		{"3", "ghi"},
+	}
+	desks := plugin.Make(3, func() any { return &Tsukue{} })
+	plugin.QueryStructFunc(datas, &desks)
+	for _, desk := range desks {
+		fmt.Printf("desk: %+v\n", desk)
 	}
 }
 
@@ -154,6 +171,15 @@ func QueryDemo() {
 	}
 
 	fmt.Printf("result: %+v\n", result)
+	for _, data := range result.Datas {
+		fmt.Printf("data: %+v\n", data)
+	}
+
+	desks := plugin.Make(int(result.NRow), func() any { return &Tsukue{} })
+	selector.Query(&desks)
+	for _, desk := range desks {
+		fmt.Printf("desk: %+v\n", desk)
+	}
 	table.PutSelector(selector)
 }
 
