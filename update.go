@@ -7,6 +7,7 @@ import (
 	"github.com/j32u4ukh/gosql/stmt"
 )
 
+// TODO: UpdateTable 傳入欄位值(ex: conflict = 1)，再利用 where 條件批次更新。
 type UpdateStmt struct {
 	*stmt.UpdateStmt
 	useAntiInjection bool

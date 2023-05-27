@@ -78,7 +78,7 @@ func InsertStruct(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.C
 	return nil
 }
 
-func QueryStructFunc(datas [][]string, generator func() any) (objs []any, err error) {
+func QueryStruct(datas [][]string, generator func() any) (objs []any, err error) {
 	var i, length int32 = 0, int32(len(datas))
 	objs = make([]any, length)
 	var obj any

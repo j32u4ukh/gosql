@@ -60,7 +60,7 @@ func main() {
 		UseAntiInjection: false,
 		InsertFunc:       plugin.InsertStruct,
 		UpdateAnyFunc:    plugin.UpdateStruct,
-		QueryFunc:        plugin.QueryStructFunc,
+		QueryFunc:        plugin.QueryStruct,
 	})
 	if err != nil {
 		fmt.Printf("BuildCreateStmt err: %+v\n", err)
@@ -92,7 +92,7 @@ func Test() {
 		{"3", "ghi"},
 	}
 	// desks := plugin.Make(3, func() any { return &Tsukue{} })
-	desks, err := plugin.QueryStructFunc(datas, func() any { return &Tsukue{} })
+	desks, err := plugin.QueryStruct(datas, func() any { return &Tsukue{} })
 	if err != nil {
 		fmt.Printf("Failed to QueryStructFunc.")
 		return
@@ -183,8 +183,12 @@ func QueryDemo() {
 
 func UpdateDemo() {
 	updater := table.GetUpdater()
+	desk := &Tsukue{
+		Id:      2,
+		Content: "xyz",
+	}
+	updater.UpdateAny(desk)
 	where := gosql.WS().Eq("Id", 2)
-	updater.Update("Content", "def")
 	updater.SetCondition(where)
 	sql, err = updater.ToStmt()
 
@@ -207,7 +211,7 @@ func UpdateDemo() {
 
 func DeleteDemo() {
 	deleter := table.GetDeleter()
-	where := gosql.WS().Eq("Id", 0)
+	where := gosql.WS().Eq("Id", 1)
 	deleter.SetCondition(where)
 	sql, err = deleter.ToStmt()
 
