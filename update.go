@@ -40,6 +40,9 @@ func (s *UpdateStmt) GetColumnNumber() int32 {
 }
 
 func (s *UpdateStmt) SetCondition(where *WhereStmt) {
+	if s.useAntiInjection {
+		where.UseAntiInjection()
+	}
 	s.Where = where.ToStmtWhere()
 }
 
