@@ -9,6 +9,10 @@ import (
 	"github.com/j32u4ukh/gosql/stmt"
 )
 
+const (
+	TIME_LAYOUT string = "2006-01-02 15:04:05"
+)
+
 type ISqlStruct interface {
 	ToStmt() string
 }
@@ -80,7 +84,7 @@ func SetValue(field reflect.Value, value string, setPointer func(reflect.Value, 
 	switch kind {
 	case reflect.Bool:
 		field.SetBool(value == "1")
-	case reflect.Uint32, reflect.Uint64:
+	case reflect.Uint, reflect.Uint32, reflect.Uint64:
 		v, _ := strconv.ParseUint(value, 10, 64)
 		field.SetUint(uint64(v))
 	case reflect.Int, reflect.Int32, reflect.Int64:
