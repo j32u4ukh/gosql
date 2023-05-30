@@ -9,6 +9,11 @@ import (
 	"github.com/j32u4ukh/gosql/stmt/dialect"
 )
 
+/*
+1. IgnoreThis 參數是必要的，因為透過反射讀取結構時，無法知道每一個 field 是否都需要，因此要忽略的欄位也會形成 Column，
+   加入 Table 來進行管理
+*/
+
 type Column struct {
 	// 欄位名稱
 	Name string

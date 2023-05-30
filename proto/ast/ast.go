@@ -11,6 +11,7 @@ import (
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 	"github.com/pkg/errors"
 	protoparser "github.com/yoheimuta/go-protoparser/v4"
 	ud "github.com/yoheimuta/go-protoparser/v4/interpret/unordered"
@@ -18,12 +19,12 @@ import (
 
 // NOTE: 參考 https://github.com/yoheimuta/go-protoparser
 func GetProtoParams(path string, sqlDial dialect.SQLDialect) (*stmt.TableParam, []*stmt.ColumnParam, error) {
+	utils.Warn("package ast 即將棄用，請改用 package plugin")
 	reader, err := os.Open(path)
-	defer reader.Close()
-
 	if err != nil {
 		return nil, nil, errors.Wrap(err, fmt.Sprintf("Failed to open %s.\n", path))
 	}
+	defer reader.Close()
 
 	got, err := protoparser.Parse(
 		reader,
@@ -40,7 +41,7 @@ func GetProtoParams(path string, sqlDial dialect.SQLDialect) (*stmt.TableParam, 
 	var unorder *ud.Proto
 	var tag string
 	var idx int
-	unorder, err = protoparser.UnorderedInterpret(got)
+	unorder, _ = protoparser.UnorderedInterpret(got)
 	msg := unorder.ProtoBody.Messages[0]
 	tableParam := stmt.NewTableParam()
 
@@ -116,12 +117,12 @@ func GetProtoParams(path string, sqlDial dialect.SQLDialect) (*stmt.TableParam, 
 }
 
 func GetVariableParams(path string) ([]*Variable, error) {
+	utils.Warn("package ast 即將棄用，請改用 package plugin")
 	reader, err := os.Open(path)
-	defer reader.Close()
-
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Failed to open %s.\n", path))
 	}
+	defer reader.Close()
 
 	got, err := protoparser.Parse(
 		reader,

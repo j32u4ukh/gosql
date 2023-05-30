@@ -3,6 +3,9 @@ package stmt
 import (
 	"fmt"
 	"strings"
+
+	"github.com/j32u4ukh/gosql/database"
+	"github.com/pkg/errors"
 )
 
 type InsertStmt struct {
@@ -12,14 +15,25 @@ type InsertStmt struct {
 	ColumnStmt string
 	// 多筆按照欄位順序傳入的數據
 	datas [][]string
+	db    *database.Database
 }
 
 func NewInsertStmt(tableName string) *InsertStmt {
 	s := &InsertStmt{
-		TableName: tableName,
-		datas:     [][]string{},
+		TableName:  tableName,
+		ColumnStmt: "",
+		datas:      [][]string{},
+		db:         nil,
 	}
 	return s
+}
+
+func (s *InsertStmt) SetDb(db *database.Database) {
+	s.db = db
+}
+
+func (s *InsertStmt) GetDb() *database.Database {
+	return s.db
 }
 
 func (s *InsertStmt) SetDbName(dbName string) {
@@ -74,4 +88,20 @@ func (s *InsertStmt) ToStmt() (string, error) {
 
 	sql := fmt.Sprintf("INSERT INTO %s %s VALUES %s;", tableName, s.ColumnStmt, strings.Join(valueStmts, ", "))
 	return sql, nil
+}
+
+func (s *InsertStmt) Exec() (*database.SqlResult, error) {
+	if s.db == nil {
+		return nil, errors.New("Undefine database.")
+	}
+	sql, err := s.ToStmt()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to generate insert statement.")
+	}
+	s.Release()
+	result, err := s.db.Exec(sql)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to excute insert statement.")
+	}
+	return result, nil
 }

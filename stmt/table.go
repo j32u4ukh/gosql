@@ -2,8 +2,10 @@ package stmt
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/j32u4ukh/cntr"
+	"github.com/j32u4ukh/gosql/database"
 	"github.com/pkg/errors"
 )
 
@@ -15,6 +17,11 @@ type Table struct {
 	*DeleteStmt
 	ColumnNames *cntr.Array[string]
 	nColumn     int32
+
+	insertPool *sync.Pool
+	queryPool  *sync.Pool
+	updatePool *sync.Pool
+	deletePool *sync.Pool
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,6 +36,26 @@ func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, 
 		DeleteStmt:  NewDeleteStmt(name),
 		ColumnNames: cntr.NewArray[string](),
 	}
+	t.insertPool = &sync.Pool{
+		New: func() any {
+			return NewInsertStmt(name)
+		},
+	}
+	t.queryPool = &sync.Pool{
+		New: func() any {
+			return NewSelectStmt(name)
+		},
+	}
+	t.updatePool = &sync.Pool{
+		New: func() any {
+			return NewUpdateStmt(name)
+		},
+	}
+	t.deletePool = &sync.Pool{
+		New: func() any {
+			return NewDeleteStmt(name)
+		},
+	}
 	if len(t.CreateStmt.Columns) > 0 {
 		// 會自行賦值的欄位也需填入 NULL，因此所有欄位名稱都要求填入
 		for _, column := range t.CreateStmt.Columns {
@@ -40,6 +67,11 @@ func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, 
 		t.InsertStmt.SetColumnNames(t.ColumnNames.Elements)
 	}
 	return t
+}
+
+func (t *Table) SetDb(db *database.Database) {
+	t.CreateStmt.db = db
+	t.CreateStmt.DbName = db.DbName
 }
 
 func (t *Table) SetDbName(dbName string) {
@@ -71,6 +103,10 @@ func (t *Table) String() string {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Create
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+func (t *Table) Creater() *CreateStmt {
+	return t.CreateStmt
+}
+
 // 添加欄位
 func (t *Table) AddColumn(column *Column) *Table {
 	// 避免欄位重複添加
@@ -93,6 +129,20 @@ func (t *Table) BuildCreateStmt() (string, error) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Insert
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+func (t *Table) GetInserter() *InsertStmt {
+	insert := t.insertPool.Get().(*InsertStmt)
+	insert.SetDb(t.CreateStmt.db)
+	insert.SetDbName(t.CreateStmt.DbName)
+	if insert.ColumnStmt == "" {
+		insert.SetColumnNames(t.ColumnNames.Elements)
+	}
+	return insert
+}
+
+func (t *Table) PutInserter(s *InsertStmt) {
+	s.Release()
+	t.insertPool.Put(s)
+}
 
 func (t *Table) BuildInsertStmt() (string, error) {
 	sql, err := t.InsertStmt.ToStmt()
@@ -108,6 +158,19 @@ func (t *Table) BuildInsertStmt() (string, error) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Select
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (t *Table) GetSelector() *SelectStmt {
+	selector := t.queryPool.Get().(*SelectStmt)
+	selector.SetDb(t.CreateStmt.db)
+	selector.SetDbName(t.CreateStmt.DbName)
+	return selector
+}
+
+func (t *Table) PutSelector(s *SelectStmt) {
+	s.Release()
+	t.queryPool.Put(s)
+}
+
 func (t *Table) SetSelectCondition(where *WhereStmt) {
 	t.SelectStmt.SetCondition(where)
 }
@@ -124,6 +187,18 @@ func (t *Table) BuildSelectStmt() (string, error) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (t *Table) GetUpdater() *UpdateStmt {
+	updater := t.updatePool.Get().(*UpdateStmt)
+	updater.SetDb(t.CreateStmt.db)
+	updater.SetDbName(t.CreateStmt.DbName)
+	return updater
+}
+
+func (t *Table) PutUpdater(s *UpdateStmt) {
+	s.Release()
+	t.updatePool.Put(s)
+}
 
 func (t *Table) SetUpdateCondition(where *WhereStmt) {
 	t.UpdateStmt.SetCondition(where)
@@ -143,6 +218,19 @@ func (t *Table) BuildUpdateStmt() (string, error) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Delete
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (t *Table) GetDeleter() *DeleteStmt {
+	deleter := t.deletePool.Get().(*DeleteStmt)
+	deleter.SetDb(t.CreateStmt.db)
+	deleter.SetDbName(t.CreateStmt.DbName)
+	return deleter
+}
+
+func (t *Table) PutDeleter(s *DeleteStmt) {
+	s.Release()
+	t.deletePool.Put(s)
+}
+
 func (t *Table) SetDeleteCondition(where *WhereStmt) {
 	t.DeleteStmt.SetCondition(where)
 }
@@ -156,6 +244,62 @@ func (t *Table) BuildDeleteStmt() (string, error) {
 	}
 
 	return sql, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sync
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// 根據傳入的欄位名稱列表 orders，對欄位進行重新排序
+// return
+// 	- 被修改順序的欄位名稱
+func (t *Table) RefreshColumnOrder(orders []string) *cntr.Array[string] {
+	changes := cntr.NewArray[string]()
+	changed := t.refreshColumnOrder(orders)
+
+	for changed != "" {
+		changes.Append(changed)
+		changed = t.refreshColumnOrder(orders)
+	}
+	return changes
+}
+
+func (t *Table) refreshColumnOrder(orders []string) string {
+	changed := ""
+	var i, j int
+	var order string = ""
+	var col *Column
+
+	for i, order = range orders {
+		for j, col = range t.CreateStmt.Columns {
+			if col.Name == order {
+				if i != j {
+					changed = order
+				}
+				break
+			}
+		}
+		if changed != "" {
+			break
+		}
+	}
+	if changed != "" {
+		col = t.CreateStmt.Columns[i]
+		t.CreateStmt.Columns[i] = t.CreateStmt.Columns[j]
+		t.CreateStmt.Columns[j] = col
+	}
+	return changed
+}
+
+// NOTE: 根據 Sync 的需求，有需要再 Clone 即可
+func (t *Table) SyncClone() *Table {
+	clone := &Table{
+		CreateStmt: t.CreateStmt.Clone(),
+		insertPool: t.insertPool,
+		queryPool:  t.queryPool,
+		updatePool: t.updatePool,
+		deletePool: t.deletePool,
+	}
+	return clone
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,7 @@ import (
 	"github.com/j32u4ukh/gosql/gdo"
 	"github.com/j32u4ukh/gosql/proto"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -24,10 +25,12 @@ type Gstmt struct {
 }
 
 func init() {
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	gstmtMap = map[byte]*Gstmt{}
 }
 
 func SetGstmt(index byte, dbName string, dialect dialect.SQLDialect) (*Gstmt, error) {
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	if _, ok := gstmtMap[index]; ok {
 		return nil, errors.New(fmt.Sprintf("index: %d 已使用", index))
 	}
@@ -40,6 +43,7 @@ func SetGstmt(index byte, dbName string, dialect dialect.SQLDialect) (*Gstmt, er
 }
 
 func GetGstmt(index byte) (*Gstmt, error) {
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	if g, ok := gstmtMap[index]; ok {
 		return g, nil
 	}
@@ -50,6 +54,7 @@ func GetGstmt(index byte) (*Gstmt, error) {
 // db: DB 指標
 // dialect: 資料庫語言(mysql/maria/...)
 func NewGstmt(dbName string, dialect dialect.SQLDialect) (*Gstmt, error) {
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	g := &Gstmt{
 		DbName: dbName,
 		Helper: &proto.Helper{Folder: ".", Dial: dialect, DbName: dbName},
@@ -80,6 +85,7 @@ func (g *Gstmt) UseAntiInjection(active bool) {
 // - 生成表格之 SQL 語法
 // - 錯誤訊息
 func (g *Gstmt) CreateTable(tid byte, folder string, tableName string) (string, error) {
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	// 檢查表格是否已存在變數中
 	if _, ok := g.tables[tid]; ok {
 		fmt.Printf("(g *Gstmt) CreateTable | 表格 %s 已存在\n", tableName)
@@ -108,10 +114,7 @@ func (g *Gstmt) CreateTable(tid byte, folder string, tableName string) (string, 
 // Insert
 // ====================================================================================================
 func (g *Gstmt) Insert(tid byte, pms []protoreflect.ProtoMessage) (string, error) {
-	// start := time.Now()
-	// defer func() {
-	// 	fmt.Printf("Cost time: %v\n", time.Since(start))
-	// }()
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	if table, ok := g.tables[tid]; ok {
 		table.InitByProtoMessage(pms[0])
 		table.Insert(pms)
@@ -129,6 +132,7 @@ func (g *Gstmt) Insert(tid byte, pms []protoreflect.ProtoMessage) (string, error
 // ====================================================================================================
 
 func (g *Gstmt) Query(tid byte, where *gdo.WhereStmt) (string, error) {
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	if table, ok := g.tables[tid]; ok {
 		sql, err := table.BuildSelectStmt(where)
 		if err != nil {
@@ -153,6 +157,7 @@ func (g *Gstmt) Count(tid byte, where *gdo.WhereStmt) (string, error) {
 // ====================================================================================================
 
 func (g *Gstmt) Update(tid byte, pm protoreflect.ProtoMessage, where *gdo.WhereStmt) (string, error) {
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	if table, ok := g.tables[tid]; ok {
 		table.InitByProtoMessage(pm)
 		sql, err := table.Update(pm, where)
@@ -169,6 +174,7 @@ func (g *Gstmt) Update(tid byte, pm protoreflect.ProtoMessage, where *gdo.WhereS
 // ====================================================================================================
 
 func (g *Gstmt) DeleteBy(tid byte, where *gdo.WhereStmt) (string, error) {
+	utils.Warn("package gstmt 即將棄用，請改用 package gosql")
 	if table, ok := g.tables[tid]; ok {
 		sql, err := table.BuildDeleteStmt(where)
 		if err != nil {

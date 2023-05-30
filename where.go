@@ -1,10 +1,10 @@
-package gdo
+package gosql
 
 import (
 	"reflect"
 
+	"github.com/j32u4ukh/gosql/plugin"
 	"github.com/j32u4ukh/gosql/stmt"
-	"github.com/j32u4ukh/gosql/utils"
 )
 
 type WhereStmt struct {
@@ -16,11 +16,10 @@ type WhereStmt struct {
 	ands             []*WhereStmt
 	ors              []*WhereStmt
 	// 將變數反射為 SQL 數值的函式
-	valueToDbFunc ValueToDbFunc
+	valueToDbFunc plugin.ValueToDbFunc
 }
 
 func WS() *WhereStmt {
-	utils.Warn("package gdo 即將棄用，請改用 package gosql")
 	s := &WhereStmt{
 		WhereStmt:        stmt.WS(),
 		op:               "",
@@ -28,7 +27,7 @@ func WS() *WhereStmt {
 		useAntiInjection: false,
 		ands:             []*WhereStmt{},
 		ors:              []*WhereStmt{},
-		valueToDbFunc:    ValueToDb,
+		valueToDbFunc:    plugin.ValueToDb,
 	}
 	return s
 }

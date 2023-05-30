@@ -5,11 +5,13 @@ import (
 
 	"github.com/j32u4ukh/gosql/gdo"
 	"github.com/j32u4ukh/gosql/stmt"
+	"github.com/j32u4ukh/gosql/utils"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func (t *ProtoTable) Insert(pms []protoreflect.ProtoMessage) error {
+	utils.Warn("package proto 即將棄用，請改用 package gosql")
 	var pm protoreflect.ProtoMessage
 
 	var rv, field reflect.Value

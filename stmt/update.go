@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/j32u4ukh/cntr"
+	"github.com/j32u4ukh/gosql/database"
 	"github.com/pkg/errors"
 )
 
@@ -18,6 +18,7 @@ type UpdateStmt struct {
 	Where     *WhereStmt
 	// 是否允許不設置 Where 條件? 若不設置會造成全部數據都被修改，需額外允許才有作用
 	allowEmptyWhere bool
+	db              *database.Database
 }
 
 func NewUpdateStmt(tableName string) *UpdateStmt {
@@ -27,8 +28,13 @@ func NewUpdateStmt(tableName string) *UpdateStmt {
 		datas:           []string{},
 		Where:           &WhereStmt{},
 		allowEmptyWhere: false,
+		db:              nil,
 	}
 	return s
+}
+
+func (s *UpdateStmt) SetDb(db *database.Database) {
+	s.db = db
 }
 
 func (s *UpdateStmt) SetDbName(dbName string) *UpdateStmt {
@@ -95,131 +101,18 @@ func (s *UpdateStmt) ToStmt() (string, error) {
 	return sql, nil
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// BatchUpdateStmt
-////////////////////////////////////////////////////////////////////////////////////////////////////
-type BatchUpdateStmt struct {
-	TableName   string
-	PrimaryKey  string
-	PrimaryKeys *cntr.Array[string]
-	cols        *cntr.Array[string]
-	sets        map[string]*SetStmt
-	Where       *WhereStmt
-}
-
-// primaryKey: 多組數據時，根據此欄位來區分不同數據
-func NewBatchUpdateStmt(tableName string, primaryKey string) *BatchUpdateStmt {
-	s := &BatchUpdateStmt{
-		TableName:   tableName,
-		PrimaryKey:  primaryKey,
-		PrimaryKeys: cntr.NewArray[string](),
-		cols:        cntr.NewArray[string](),
-		// key: column name
-		sets:  map[string]*SetStmt{},
-		Where: nil,
+func (s *UpdateStmt) Exec() (*database.SqlResult, error) {
+	if s.db == nil {
+		return nil, errors.New("Undefine database.")
 	}
-	return s
-}
-
-func (s *BatchUpdateStmt) Update(key string, col string, value string) *BatchUpdateStmt {
-	if !s.PrimaryKeys.Contains(key) {
-		s.PrimaryKeys.Append(key)
-	}
-
-	if _, ok := s.sets[col]; !ok {
-		s.sets[col] = newSetStmt(s.PrimaryKey, col)
-		s.cols.Append(col)
-	}
-
-	s.sets[col].AddData(key, value)
-	return s
-}
-
-func (s *BatchUpdateStmt) SetCondition(where *WhereStmt) *BatchUpdateStmt {
-	s.Where = where
-	return s
-}
-
-// 取得緩存數量
-func (s *BatchUpdateStmt) GetBufferNumber() int {
-	return s.PrimaryKeys.Length()
-}
-
-func (s *BatchUpdateStmt) Release() {
-	s.PrimaryKeys.Clear()
-
-	for k := range s.sets {
-		delete(s.sets, k)
-	}
-}
-
-func (s *BatchUpdateStmt) ToStmt() (string, error) {
-	sets := []string{}
-	var set *SetStmt
-	var stmt string
-	var err error
-
-	for _, col := range s.cols.Elements {
-		set = s.sets[col]
-		stmt, err = set.toStmt()
-
-		if err != nil {
-			return "", errors.Wrap(err, "Failed to generate set statement.")
-		}
-
-		sets = append(sets, stmt)
-	}
-
-	setStmt := strings.Join(sets, ", ")
-	where := WS().In(s.PrimaryKey, s.PrimaryKeys.Elements...)
-	wstmt, err := where.AddAndCondtion(s.Where).ToStmt()
-
+	sql, err := s.ToStmt()
 	if err != nil {
-		return "", errors.Wrap(err, "Failed to generate where statement.")
+		return nil, errors.Wrap(err, "Failed to generate update statement.")
 	}
-
-	sql := fmt.Sprintf("UPDATE %s SET %s WHERE %s;", s.TableName, setStmt, wstmt)
-	return sql, nil
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// SetStmt
-////////////////////////////////////////////////////////////////////////////////////////////////////
-type SetStmt struct {
-	key    string
-	column string
-	keys   []string
-	values []string
-}
-
-func newSetStmt(key string, column string) *SetStmt {
-	s := &SetStmt{
-		key:    key,
-		column: column,
-		keys:   []string{},
-		values: []string{},
+	s.Release()
+	result, err := s.db.Exec(sql)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to excute update statement.")
 	}
-	return s
-}
-
-func (s *SetStmt) AddData(key string, value string) {
-	s.keys = append(s.keys, key)
-	s.values = append(s.values, value)
-}
-
-func (s *SetStmt) toStmt() (string, error) {
-	// SET [column] = CASE [primary_key]
-	// WHEN m0.fileds.Get(0) THEN 'Insert1'
-	// WHEN m1.fileds.Get(0) THEN 'Insert3'
-	// END
-	content := []string{}
-	var i int
-	var key string
-
-	for i, key = range s.keys {
-		// WHEN [value of primary column] THEN [value of target column]
-		content = append(content, fmt.Sprintf("WHEN %s THEN %s", key, s.values[i]))
-	}
-
-	return fmt.Sprintf("`%s` = CASE `%s` %s END", s.column, s.key, strings.Join(content, " ")), nil
+	return result, nil
 }

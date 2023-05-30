@@ -58,3 +58,20 @@ func (h *Helper) GetParams(table_name string) (*stmt.TableParam, []*stmt.ColumnP
 
 	return tableParam, colParams, nil
 }
+
+func GetParams(folder string, tableName string, dial dialect.SQLDialect) (*stmt.TableParam, []*stmt.ColumnParam, error) {
+	path := fmt.Sprintf("%s.proto", filepath.Join(folder, tableName))
+	_, err := os.Stat(path)
+
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "檔案不存在, path: %s", path)
+	}
+
+	tableParam, colParams, err := ast.GetProtoParams(path, dial)
+
+	if err != nil {
+		return nil, nil, errors.Wrap(err, fmt.Sprintf("Failed to get params from %s.", path))
+	}
+
+	return tableParam, colParams, nil
+}

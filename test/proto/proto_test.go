@@ -4,33 +4,33 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/j32u4ukh/gosql/gdo"
-	"github.com/j32u4ukh/gosql/proto"
+	"github.com/j32u4ukh/gosql"
+	"github.com/j32u4ukh/gosql/plugin"
+	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
 	"github.com/j32u4ukh/gosql/test/pbgo"
 
 	"github.com/pkg/errors"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func InitTable() (*proto.ProtoTable, error) {
-	helper := &proto.Helper{
-		Folder: "../pb",
-		Dial:   dialect.MARIA,
-	}
-
+func InitTable() (*gosql.Table, error) {
 	tableName := "Desk"
-	// GetParams(table_name string) (*stmt.TableParam, []*stmt.ColumnParam, error)
-	tableParam, columnParam, err := helper.GetParams(tableName)
+	tableParams, columnParams, err := plugin.GetProtoParams(fmt.Sprintf("../pb/%s.proto", tableName), dialect.MARIA)
 
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("TestInsertStmt | Error: %+v\n", err))
+		return nil, errors.Wrap(err, "Failed to get proto params")
 	}
 
-	// NewProtoTable(name string, tableParam *stmt.TableParam, params []*stmt.ColumnParam, dial string)
-	table := proto.NewProtoTable(tableName, tableParam, columnParam, helper.Dial)
-	table.SetDbName("demo2")
-	fmt.Printf("ProtoTable: %+v\n", table)
+	table := gosql.NewTable(tableName, tableParams, columnParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	table.Init(&gosql.TableConfig{
+		DbName:           "demo2",
+		UseAntiInjection: false,
+		PtrToDbFunc:      plugin.ProtoToDb,
+		InsertFunc:       plugin.InsertProto,
+		QueryFunc:        plugin.QueryProto,
+		UpdateAnyFunc:    plugin.UpdateProto,
+	})
+
 	return table, nil
 }
 
@@ -42,7 +42,7 @@ func TestCreateStmt(t *testing.T) {
 		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
 	}
 
-	sql, err := table.BuildCreateStmt()
+	sql, err := table.Creater().ToStmt()
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -56,7 +56,7 @@ func TestCreateStmt(t *testing.T) {
 }
 
 func TestInsertStmt(t *testing.T) {
-	answer := "INSERT INTO `demo2`.`Desk` (`index`, `user_name`, `item_id`, `time`) VALUES (NULL, '9527', 29, NULL);"
+	answer := "INSERT INTO `demo2`.`Desk` (`user_name`, `item_id`) VALUES ('9527', 29);"
 	table, err := InitTable()
 
 	if err != nil {
@@ -68,10 +68,10 @@ func TestInsertStmt(t *testing.T) {
 		ItemId:   29,
 	}
 
-	table.InitByProtoMessage(d1)
-	table.SetColumnNames([]string{"index", "user_name", "item_id", "time"})
-	table.Insert([]protoreflect.ProtoMessage{d1})
-	sql, err := table.BuildInsertStmt()
+	inserter := table.GetInserter()
+	inserter.Insert(d1)
+	sql, err := inserter.ToStmt()
+	table.PutInserter(inserter)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -92,9 +92,12 @@ func TestQueryStmt(t *testing.T) {
 		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
 	}
 
-	table.SetLimit(5)
-	table.SetOffset(3)
-	sql, err := table.BuildSelectStmt(gdo.WS().Eq("Index", 3))
+	selector := table.GetSelector()
+	selector.SetLimit(5)
+	selector.SetOffset(3)
+	selector.SetCondition(gosql.WS().Eq("Index", 3))
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -120,8 +123,12 @@ func TestUpdateStmt(t *testing.T) {
 		UserName: "97",
 		ItemId:   3,
 	}
-	table.InitByProtoMessage(d1)
-	sql, err := table.Update(d1, gdo.WS().Eq("index", 2))
+
+	updater := table.GetUpdater()
+	updater.SetCondition(gosql.WS().Eq("index", 2))
+	updater.UpdateAny(d1)
+	sql, err := updater.ToStmt()
+	table.PutUpdater(updater)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -142,14 +149,9 @@ func TestDeleteDemo(t *testing.T) {
 		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
 	}
 
-	d1 := &pbgo.Desk{
-		Index:    3,
-		UserName: "9527",
-		ItemId:   29,
-	}
-
-	table.InitByProtoMessage(d1)
-	sql, err := table.BuildDeleteStmt(gdo.WS().Eq("Index", 3))
+	deleter := table.GetDeleter()
+	deleter.SetCondition(gosql.WS().Eq("Index", 3))
+	sql, err := deleter.ToStmt()
 
 	if err != nil || sql != answer {
 		if err != nil {

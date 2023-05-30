@@ -1,6 +1,9 @@
 package gdo
 
-import "github.com/pkg/errors"
+import (
+	"github.com/j32u4ukh/gosql/utils"
+	"github.com/pkg/errors"
+)
 
 func (t *Table) SetSelectCondition(where *WhereStmt) {
 	if t.useAntiInjection {
@@ -10,6 +13,7 @@ func (t *Table) SetSelectCondition(where *WhereStmt) {
 }
 
 func (t *Table) BuildSelectStmt() (string, error) {
+	utils.Warn("package gdo 即將棄用，請改用 package gosql")
 	sql, err := t.SelectStmt.ToStmt()
 	t.SelectStmt.Release()
 	if err != nil {

@@ -5,10 +5,12 @@ import (
 
 	"github.com/j32u4ukh/gosql/gdo"
 	"github.com/j32u4ukh/gosql/stmt"
+	"github.com/j32u4ukh/gosql/utils"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func (t *ProtoTable) Update(pm protoreflect.ProtoMessage, where *gdo.WhereStmt) (string, error) {
+	utils.Warn("package proto 即將棄用，請改用 package gosql")
 	var rv, field reflect.Value
 	var column *stmt.Column
 	var i int

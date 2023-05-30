@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/j32u4ukh/cntr"
-	"github.com/j32u4ukh/gosql"
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/gdo"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 	"github.com/pkg/errors"
 )
 
@@ -431,33 +431,33 @@ func (s *Synchronize) PrintCheckResult() bool {
 	var origin, curret *stmt.Column
 	hasDiff := false
 
-	gosql.Info("===== CHANGE / ADD =====")
+	utils.Info("===== CHANGE / ADD =====")
 	for k, v := range s.alterMap {
 		hasDiff = true
 		curret = s.toTable.GetColumnByName(k)
 
 		if v[0] == "change" {
 			origin = s.originTable.GetColumnByName(v[1])
-			gosql.Info("Origin | `%s` %s", v[1], origin.GetInfo())
-			gosql.Info("CHANGE | `%s` %s", k, curret.GetInfo())
+			utils.Info("Origin | `%s` %s", v[1], origin.GetInfo())
+			utils.Info("CHANGE | `%s` %s", k, curret.GetInfo())
 
 		} else if v[0] == "add" {
-			gosql.Info("ADD | `%s` %s", k, curret.GetInfo())
+			utils.Info("ADD | `%s` %s", k, curret.GetInfo())
 		}
 	}
 
 	// DROP INDEX `索引 2`
-	gosql.Info("===== DROP INDEX =====")
+	utils.Info("===== DROP INDEX =====")
 	for _, index := range s.dropList.Elements {
 		hasDiff = true
-		gosql.Info("DROP `%s`", index)
+		utils.Info("DROP `%s`", index)
 	}
 
 	// ADD INDEX `索引 2`
-	gosql.Info("===== ADD INDEX =====")
+	utils.Info("===== ADD INDEX =====")
 	for index := range s.indexMap {
 		hasDiff = true
-		gosql.Info("ADD `%s`", index)
+		utils.Info("ADD `%s`", index)
 	}
 
 	return hasDiff
@@ -517,7 +517,7 @@ func (s *Synchronize) getAlterStmts() []string {
 				info = fmt.Sprintf("%s AFTER `%s`", column.GetInfo(), lastColumn)
 
 			} else {
-				gosql.Info("Wrong idx: %d, colName: %s, cols: %+v", idx, colName, colNames)
+				utils.Info("Wrong idx: %d, colName: %s, cols: %+v", idx, colName, colNames)
 				continue
 			}
 
@@ -529,7 +529,7 @@ func (s *Synchronize) getAlterStmts() []string {
 				sql = fmt.Sprintf("ADD COLUMN `%s` %s", colName, info)
 
 			} else {
-				gosql.Info("Wrong operate: %+v", params)
+				utils.Info("Wrong operate: %+v", params)
 				continue
 			}
 

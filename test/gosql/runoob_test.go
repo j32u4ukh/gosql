@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/j32u4ukh/gosql/gdo"
+	"github.com/j32u4ukh/gosql"
 	"github.com/j32u4ukh/gosql/stmt"
 )
 
@@ -12,8 +12,10 @@ func TestRunoobSelect1(t *testing.T) {
 	answer := "SELECT `name`, `country` FROM `Websites`;"
 	table := InitWebsitesTable()
 	fmt.Printf("%+v\n", table)
-	table.SetSelectItem(stmt.NewSelectItem("name").UseBacktick(), stmt.NewSelectItem("country").UseBacktick())
-	sql, err := table.BuildSelectStmt()
+	selector := table.GetSelector()
+	selector.SetSelectItem(stmt.NewSelectItem("name").UseBacktick(), stmt.NewSelectItem("country").UseBacktick())
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -29,8 +31,10 @@ func TestRunoobSelect1(t *testing.T) {
 func TestRunoobSelect2(t *testing.T) {
 	answer := "SELECT DISTINCT `country` FROM `Websites`;"
 	table := InitWebsitesTable()
-	table.SetSelectItem(stmt.NewSelectItem("country").UseBacktick().Distinct())
-	sql, err := table.BuildSelectStmt()
+	selector := table.GetSelector()
+	selector.SetSelectItem(stmt.NewSelectItem("country").UseBacktick().Distinct())
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -46,11 +50,13 @@ func TestRunoobSelect2(t *testing.T) {
 func TestRunoobSelect3(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `country` = 'CN';"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Eq("country", "CN")
-	table.SetSelectCondition(where)
+	where := gosql.WS().Eq("country", "CN")
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -66,11 +72,13 @@ func TestRunoobSelect3(t *testing.T) {
 func TestRunoobSelect4(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `id` = 1;"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Eq("id", 1)
-	table.SetSelectCondition(where)
+	where := gosql.WS().Eq("id", 1)
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -86,11 +94,15 @@ func TestRunoobSelect4(t *testing.T) {
 func TestRunoobSelect5(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `country` = 'CN' AND `alexa` > 50;"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().AddAndCondtion(gdo.WS().Eq("country", "CN")).AddAndCondtion(gdo.WS().Gt("alexa", 50))
-	table.SetSelectCondition(where)
+	where := gosql.WS().
+		AddAndCondtion(gosql.WS().Eq("country", "CN")).
+		AddAndCondtion(gosql.WS().Gt("alexa", 50))
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -106,11 +118,15 @@ func TestRunoobSelect5(t *testing.T) {
 func TestRunoobSelect6(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `country` = 'USA' OR `country` = 'CN';"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().AddOrCondtion(gdo.WS().Eq("country", "USA")).AddOrCondtion(gdo.WS().Eq("country", "CN"))
-	table.SetSelectCondition(where)
+	where := gosql.WS().
+		AddOrCondtion(gosql.WS().Eq("country", "USA")).
+		AddOrCondtion(gosql.WS().Eq("country", "CN"))
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -126,15 +142,17 @@ func TestRunoobSelect6(t *testing.T) {
 func TestRunoobSelect7(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `alexa` > 15 AND (`country` = 'USA' OR `country` = 'CN');"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().
-		AddAndCondtion(gdo.WS().Gt("alexa", 15)).
-		AddAndCondtion(gdo.WS().SetBrackets().
-			AddOrCondtion(gdo.WS().Eq("country", "USA")).
-			AddOrCondtion(gdo.WS().Eq("country", "CN")))
-	table.SetSelectCondition(where)
+	where := gosql.WS().
+		AddAndCondtion(gosql.WS().Gt("alexa", 15)).
+		AddAndCondtion(gosql.WS().SetBrackets().
+			AddOrCondtion(gosql.WS().Eq("country", "USA")).
+			AddOrCondtion(gosql.WS().Eq("country", "CN")))
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -150,10 +168,12 @@ func TestRunoobSelect7(t *testing.T) {
 func TestRunoobSelect8(t *testing.T) {
 	answer := "SELECT * FROM `Websites` ORDER BY `alexa`;"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	table.SetOrderBy("alexa")
+	selector.SetOrderBy("alexa")
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -169,10 +189,12 @@ func TestRunoobSelect8(t *testing.T) {
 func TestRunoobSelect9(t *testing.T) {
 	answer := "SELECT * FROM `Websites` ORDER BY `country`, `alexa`;"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	table.SetOrderBy("country", "alexa")
+	selector.SetOrderBy("country", "alexa")
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -188,11 +210,13 @@ func TestRunoobSelect9(t *testing.T) {
 func TestRunoobSelect10(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `name` LIKE 'G%';"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Like("name", "G%")
-	table.SetSelectCondition(where)
+	where := gosql.WS().Like("name", "G%")
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -208,11 +232,13 @@ func TestRunoobSelect10(t *testing.T) {
 func TestRunoobSelect11(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE NOT (`name` LIKE '%oo%');"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Like("name", "%oo%").SetNotCondition()
-	table.SetSelectCondition(where)
+	where := gosql.WS().Like("name", "%oo%").SetNotCondition()
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -228,11 +254,13 @@ func TestRunoobSelect11(t *testing.T) {
 func TestRunoobSelect12(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `name` REGEXP '^[GFs]';"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Regexp("name", "^[GFs]")
-	table.SetSelectCondition(where)
+	where := gosql.WS().Regexp("name", "^[GFs]")
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -248,11 +276,13 @@ func TestRunoobSelect12(t *testing.T) {
 func TestRunoobSelect13(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `name` IN ('Google', 'Apple');"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().In("name", "Google", "Apple")
-	table.SetSelectCondition(where)
+	where := gosql.WS().In("name", "Google", "Apple")
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -268,11 +298,13 @@ func TestRunoobSelect13(t *testing.T) {
 func TestRunoobSelect14(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `alexa` BETWEEN 1 AND 20;"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Between("alexa", 1, 20)
-	table.SetSelectCondition(where)
+	where := gosql.WS().Between("alexa", 1, 20)
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -288,11 +320,13 @@ func TestRunoobSelect14(t *testing.T) {
 func TestRunoobSelect15(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE NOT (`alexa` BETWEEN 1 AND 20);"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Between("alexa", 1, 20).SetNotCondition()
-	table.SetSelectCondition(where)
+	where := gosql.WS().Between("alexa", 1, 20).SetNotCondition()
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -308,13 +342,15 @@ func TestRunoobSelect15(t *testing.T) {
 func TestRunoobSelect16(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE (`alexa` BETWEEN 1 AND 20) AND (`country` IN ('USA', 'IND'));"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	cond1 := gdo.WS().Between("alexa", 1, 20).SetBrackets()
-	cond2 := gdo.WS().In("country", "USA", "IND").SetNotCondition().SetBrackets()
-	where := gdo.WS().AddAndCondtion(cond1).AddAndCondtion(cond2)
-	table.SetSelectCondition(where)
+	cond1 := gosql.WS().Between("alexa", 1, 20).SetBrackets()
+	cond2 := gosql.WS().In("country", "USA", "IND").SetNotCondition().SetBrackets()
+	where := gosql.WS().AddAndCondtion(cond1).AddAndCondtion(cond2)
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -330,11 +366,13 @@ func TestRunoobSelect16(t *testing.T) {
 func TestRunoobSelect17(t *testing.T) {
 	answer := "SELECT * FROM `Websites` WHERE `name` BETWEEN 'A' AND 'H';"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	where := gdo.WS().Between("name", "A", "H")
-	table.SetSelectCondition(where)
+	where := gosql.WS().Between("name", "A", "H")
+	selector.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -350,10 +388,15 @@ func TestRunoobSelect17(t *testing.T) {
 func TestRunoobSelect18(t *testing.T) {
 	answer := "SELECT name AS n, country AS c FROM `Websites`;"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	table.SetSelectItem(stmt.NewSelectItem("name").SetAlias("n"), stmt.NewSelectItem("country").SetAlias("c"))
+	selector.SetSelectItem(
+		stmt.NewSelectItem("name").SetAlias("n"),
+		stmt.NewSelectItem("country").SetAlias("c"),
+	)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -369,10 +412,15 @@ func TestRunoobSelect18(t *testing.T) {
 func TestRunoobSelect19(t *testing.T) {
 	answer := "SELECT name, CONCAT(url, ', ', alexa, ', ', country) AS site_info FROM `Websites`;"
 	table := InitWebsitesTable()
+	selector := table.GetSelector()
 	//////////////////////////////////////////////////
-	table.SetSelectItem(stmt.NewSelectItem("name"), stmt.NewSelectItem("").Concat("url", "', '", "alexa", "', '", "country").SetAlias("site_info"))
+	selector.SetSelectItem(
+		stmt.NewSelectItem("name"),
+		stmt.NewSelectItem("").Concat("url", "', '", "alexa", "', '", "country").SetAlias("site_info"),
+	)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildSelectStmt()
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -388,14 +436,16 @@ func TestRunoobSelect19(t *testing.T) {
 func TestRunoobInsert1(t *testing.T) {
 	answer := "INSERT INTO `Websites` (`id`, `name`, `url`, `alexa`, `contury`) VALUES (NULL, '百度', 'https://www.baidu.com/', 4, 'CN');"
 	table := InitWebsitesTable()
+	inserter := table.GetInserter()
 	//////////////////////////////////////////////////
-	err := table.Insert([]any{"NULL", "百度", "https://www.baidu.com/", 4, "CN"}, nil)
+	err := inserter.Insert([]any{"NULL", "百度", "https://www.baidu.com/", 4, "CN"})
 	if err != nil {
 		fmt.Printf("Insert err: %+v\n", err)
 		return
 	}
 	//////////////////////////////////////////////////
-	sql, err := table.BuildInsertStmt()
+	sql, err := inserter.ToStmt()
+	table.PutInserter(inserter)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -411,13 +461,15 @@ func TestRunoobInsert1(t *testing.T) {
 func TestRunoobUpdate1(t *testing.T) {
 	answer := "UPDATE `Websites` SET `alexa` = 5000, `country` = 'USA' WHERE `name` = 'ABC';"
 	table := InitWebsitesTable()
+	updater := table.GetUpdater()
 	//////////////////////////////////////////////////
-	table.Update("alexa", 5000, nil)
-	table.Update("country", "USA", nil)
-	where := gdo.WS().Eq("name", "ABC")
-	table.SetUpdateCondition(where)
+	updater.Update("alexa", 5000)
+	updater.Update("country", "USA")
+	where := gosql.WS().Eq("name", "ABC")
+	updater.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildUpdateStmt()
+	sql, err := updater.ToStmt()
+	table.PutUpdater(updater)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -433,12 +485,14 @@ func TestRunoobUpdate1(t *testing.T) {
 func TestRunoobUpdate2(t *testing.T) {
 	answer := "UPDATE `Websites` SET `alexa` = 5000, `country` = 'USA';"
 	table := InitWebsitesTable()
+	updater := table.GetUpdater()
 	//////////////////////////////////////////////////
-	table.Update("alexa", 5000, nil)
-	table.Update("country", "USA", nil)
-	table.AllowEmptyUpdateCondition()
+	updater.Update("alexa", 5000)
+	updater.Update("country", "USA")
+	updater.AllowEmptyWhere()
 	//////////////////////////////////////////////////
-	sql, err := table.BuildUpdateStmt()
+	sql, err := updater.ToStmt()
+	table.PutUpdater(updater)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -454,11 +508,15 @@ func TestRunoobUpdate2(t *testing.T) {
 func TestRunoobDelete1(t *testing.T) {
 	answer := "DELETE FROM `Websites` WHERE `name` = 'Facebook' AND `country` = 'USA';"
 	table := InitWebsitesTable()
+	deleter := table.GetDeleter()
 	//////////////////////////////////////////////////
-	where := gdo.WS().AddAndCondtion(gdo.WS().Eq("name", "Facebook")).AddAndCondtion(gdo.WS().Eq("country", "USA"))
-	table.SetDeleteCondition(where)
+	where := gosql.WS().
+		AddAndCondtion(gosql.WS().Eq("name", "Facebook")).
+		AddAndCondtion(gosql.WS().Eq("country", "USA"))
+	deleter.SetCondition(where)
 	//////////////////////////////////////////////////
-	sql, err := table.BuildDeleteStmt()
+	sql, err := deleter.ToStmt()
+	table.PutDeleter(deleter)
 
 	if err != nil || sql != answer {
 		if err != nil {
@@ -474,10 +532,12 @@ func TestRunoobDelete1(t *testing.T) {
 func TestRunoobDelete2(t *testing.T) {
 	answer := "DELETE FROM `Websites`;"
 	table := InitWebsitesTable()
+	deleter := table.GetDeleter()
 	//////////////////////////////////////////////////
-	table.AllowEmptyDeleteCondition()
+	deleter.AllowEmptyWhere()
 	//////////////////////////////////////////////////
-	sql, err := table.BuildDeleteStmt()
+	sql, err := deleter.ToStmt()
+	table.PutDeleter(deleter)
 
 	if err != nil || sql != answer {
 		if err != nil {

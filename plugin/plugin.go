@@ -1,4 +1,4 @@
-package gdo
+package plugin
 
 import (
 	"encoding/json"
@@ -8,6 +8,22 @@ import (
 
 	"github.com/j32u4ukh/gosql/stmt"
 )
+
+const (
+	TIME_LAYOUT string = "2006-01-02 15:04:05"
+)
+
+type ISqlStruct interface {
+	ToStmt() string
+}
+
+func Make(size int, gen func() any) []any {
+	arr := make([]any, size)
+	for i := 0; i < size; i++ {
+		arr[i] = gen()
+	}
+	return arr
+}
 
 type ValueToDbFunc func(v reflect.Value, useAntiInjection bool, ptrToDb func(reflect.Value, bool) string) string
 
@@ -61,29 +77,29 @@ func ValueToDb(v reflect.Value, useAntiInjection bool, ptrToDb func(reflect.Valu
 	}
 }
 
-func SetValue(field reflect.Value, value []byte, setPointer func(reflect.Value, []byte)) {
+func SetValue(field reflect.Value, value string, setPointer func(reflect.Value, string)) {
 	kind := field.Kind()
 	// fmt.Printf("SetValue(kind: %v, field: %v, value: %v)\n", kind, field, value)
 
 	switch kind {
 	case reflect.Bool:
-		field.SetBool(string(value) == "1")
-	case reflect.Uint32, reflect.Uint64:
-		v, _ := strconv.ParseUint(string(value), 10, 64)
+		field.SetBool(value == "1")
+	case reflect.Uint, reflect.Uint32, reflect.Uint64:
+		v, _ := strconv.ParseUint(value, 10, 64)
 		field.SetUint(uint64(v))
-	case reflect.Int32, reflect.Int64:
-		v, _ := strconv.ParseInt(string(value), 10, 64)
+	case reflect.Int, reflect.Int32, reflect.Int64:
+		v, _ := strconv.ParseInt(value, 10, 64)
 		field.SetInt(int64(v))
 	case reflect.Float32:
-		v, _ := strconv.ParseFloat(string(value), 32)
+		v, _ := strconv.ParseFloat(value, 32)
 		field.SetFloat(v)
 	case reflect.Float64:
-		v, _ := strconv.ParseFloat(string(value), 64)
+		v, _ := strconv.ParseFloat(value, 64)
 		field.SetFloat(v)
 	case reflect.String:
-		field.SetString(string(value))
+		field.SetString(value)
 	case reflect.Map:
-		SetMap(field, value)
+		SetMap(field, []byte(value))
 	case reflect.Pointer:
 		if setPointer != nil {
 			setPointer(field, value)
