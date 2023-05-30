@@ -3,19 +3,21 @@ package utils
 import (
 	"fmt"
 
-	"github.com/j32u4ukh/glog"
+	"github.com/j32u4ukh/glog/v2"
 )
 
 var logger *glog.Logger
 
-func InitLogger(folder string, loggerName string, level glog.LogLevel) {
-	logger = glog.GetLogger(folder, loggerName, level, false)
-}
+// func init() {
+// 	InitLogger(glog.DebugLevel, "", glog.BasicOption(glog.WarnLevel, true, false, true))
+// }
 
-func SetOptions(options ...glog.Option) {
-	if logger != nil {
-		logger.SetOptions(options...)
+func InitLogger(level glog.LogLevel, folder string, options ...glog.Option) {
+	logger = glog.SetLogger(0, "glog", level)
+	if folder != "" {
+		logger.SetFolder(folder)
 	}
+	logger.SetOptions(options...)
 }
 
 func Debug(message string, a ...any) {
@@ -48,4 +50,8 @@ func Error(message string, a ...any) {
 	} else {
 		fmt.Printf("[Error] %s\n", fmt.Sprintf(message, a...))
 	}
+}
+
+func CheckCallers() {
+	logger.CheckCallers()
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/j32u4ukh/gosql/utils"
 	"github.com/pkg/errors"
 )
 
@@ -57,6 +58,7 @@ func (t *Table) GetInsertBufferNumber() int32 {
 }
 
 func (t *Table) BuildInsertStmt() (string, error) {
+	utils.Warn("package gdo 即將棄用，請改用 package gosql")
 	sql, err := t.InsertStmt.ToStmt()
 	t.InsertStmt.Release()
 	if err != nil {

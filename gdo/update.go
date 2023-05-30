@@ -3,6 +3,7 @@ package gdo
 import (
 	"reflect"
 
+	"github.com/j32u4ukh/gosql/utils"
 	"github.com/pkg/errors"
 )
 
@@ -30,6 +31,7 @@ func (t *Table) AllowEmptyUpdateCondition() {
 }
 
 func (t *Table) BuildUpdateStmt() (string, error) {
+	utils.Warn("package gdo 即將棄用，請改用 package gosql")
 	sql, err := t.UpdateStmt.ToStmt()
 	t.UpdateStmt.Release()
 

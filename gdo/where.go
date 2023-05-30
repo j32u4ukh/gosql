@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/j32u4ukh/gosql/stmt"
+	"github.com/j32u4ukh/gosql/utils"
 )
 
 type WhereStmt struct {
@@ -19,6 +20,7 @@ type WhereStmt struct {
 }
 
 func WS() *WhereStmt {
+	utils.Warn("package gdo 即將棄用，請改用 package gosql")
 	s := &WhereStmt{
 		WhereStmt:        stmt.WS(),
 		op:               "",

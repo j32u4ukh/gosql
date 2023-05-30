@@ -6,6 +6,7 @@ import (
 	"github.com/j32u4ukh/gosql/gdo"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -19,6 +20,7 @@ type ProtoTable struct {
 }
 
 func NewTable(name string, dial dialect.SQLDialect) *ProtoTable {
+	utils.Warn("package proto 即將棄用，請改用 package gosql")
 	t := &ProtoTable{
 		Table: gdo.NewTable(name, stmt.NewTableParam(), nil, stmt.ENGINE, stmt.COLLATE, dial),
 	}
@@ -27,6 +29,7 @@ func NewTable(name string, dial dialect.SQLDialect) *ProtoTable {
 
 // 根據傳入的 Param，對 Column 進行定義，並生成 Table
 func NewProtoTable(name string, tableParam *stmt.TableParam, params []*stmt.ColumnParam, dial dialect.SQLDialect) *ProtoTable {
+	utils.Warn("package proto 即將棄用，請改用 package gosql")
 	t := &ProtoTable{
 		Table:            gdo.NewTable(name, tableParam, params, stmt.ENGINE, stmt.COLLATE, dial),
 		useAntiInjection: true,
