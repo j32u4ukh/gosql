@@ -31,7 +31,7 @@ type Table struct {
 	deletePool *sync.Pool
 	// 欄位名稱
 	ColumnNames *cntr.Array[string]
-	// 欄位數
+	// 總欄位數(包含沒有要加入資料庫的欄位數)
 	nColumn int32
 	// 是否對 SQL injection 做處理
 	useAntiInjection bool

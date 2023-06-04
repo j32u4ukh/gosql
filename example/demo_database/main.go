@@ -7,12 +7,17 @@ import (
 	"time"
 
 	"github.com/j32u4ukh/cntr"
+	"github.com/j32u4ukh/glog/v2"
 	"github.com/j32u4ukh/gosql/database"
+	"github.com/j32u4ukh/gosql/utils"
 )
 
 var db *database.Database
 
 func main() {
+	logger := glog.SetLogger(0, "demo_database", glog.DebugLevel)
+	utils.SetLogger(logger)
+
 	command := strings.ToLower(os.Args[1])
 	conf, err := database.NewConfig("../config/config.yaml")
 

@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/j32u4ukh/glog"
+	"github.com/j32u4ukh/glog/v2"
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/example/pbgo"
 	"github.com/j32u4ukh/gosql/gdo"
 	"github.com/j32u4ukh/gosql/proto/gstmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -25,8 +26,11 @@ var err error
 var logger *glog.Logger
 
 func main() {
+	logger = glog.SetLogger(0, "demo_gstmt", glog.DebugLevel)
+	utils.SetLogger(logger)
+	logger.SetFolder("../log")
+
 	command := strings.ToLower(os.Args[1])
-	logger = glog.GetLogger("../log", "demo_gstmt", glog.DebugLevel, false)
 	conf, err := database.NewConfig("../config/config.yaml")
 
 	if err != nil {
