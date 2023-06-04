@@ -153,6 +153,9 @@ func QueryDemo() {
 	}
 
 	fmt.Printf("result: %+v\n", result)
+	for i, data := range result.Datas {
+		fmt.Printf("i: %d, data: %+v\n", i, data)
+	}
 	table.PutSelector(selector)
 }
 
@@ -182,7 +185,7 @@ func UpdateDemo() {
 
 func DeleteDemo() {
 	deleter := table.GetDeleter()
-	where := gosql.WS().Eq("Id", 0)
+	where := gosql.WS().Eq("Id", 2)
 	deleter.SetCondition(where)
 	sql, err = deleter.ToStmt()
 

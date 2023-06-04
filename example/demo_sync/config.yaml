@@ -3,7 +3,7 @@ ProtoFolder: "../pb"
 FromDatabase:
   UserName: "db_user"
   Password: "password"
-  Server: "192.168.0.167"
+  Server: "192.168.0.168"
   Port: 3306
   Name: "pekomiko"
 FromTables:
@@ -14,7 +14,7 @@ FromTables:
 ToDatabase:
   UserName: "db_user"
   Password: "password"
-  Server: "192.168.0.167"
+  Server: "192.168.0.168"
   Port: 3306
   Name: "pekomiko"
 ToTables:

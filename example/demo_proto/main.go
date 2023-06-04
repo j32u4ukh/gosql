@@ -90,38 +90,8 @@ func main() {
 		UpdateDemo()
 	case "d":
 		DeleteDemo()
-	case "t":
-		Test()
 	default:
 		fmt.Printf("No invalid command(%s).\n", command)
-	}
-}
-
-// [[ {"1":2,"3":4} {"1":"a","2":"b"} {"c":3,"d":4} {"e":"f","g":"h"} 18 19 20 3]]
-func Test() {
-	datas := [][]string{
-		{
-			"{\"player_id\":1,\"diamond\":2,\"gold\":3}",
-			"{\"1\":2,\"3\":4}",
-			"{\"1\":\"a\",\"2\":\"b\"}",
-			"{\"c\":3,\"d\":4}",
-			"{\"e\":\"f\",\"g\":\"h\"}",
-			"18",
-			"19",
-			"20",
-			"3",
-		},
-	}
-
-	am2s, err := plugin.QueryProto(datas, func() any { return &pbgo.AllMight2{} })
-
-	if err != nil {
-		fmt.Printf("Error: %+v\n", err)
-		return
-	}
-
-	for _, am2 := range am2s {
-		fmt.Printf("am2: %+v\n", am2)
 	}
 }
 

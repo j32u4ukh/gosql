@@ -126,12 +126,16 @@ func CreateDemo() {
 
 func InsertDemo() {
 	inserter := table.GetInserter()
-	desk := &Tsukue{Id: 0, Content: "abc"}
-	err = inserter.Insert(desk)
+	var desk *Tsukue
 
-	if err != nil {
-		fmt.Printf("Insert err: %+v\n", err)
-		return
+	for i := 0; i < 10; i++ {
+		desk = &Tsukue{Content: "abc"}
+		err = inserter.Insert(desk)
+
+		if err != nil {
+			fmt.Printf("Insert %+v failed, err: %+v\n", desk, err)
+			return
+		}
 	}
 
 	sql, err = inserter.ToStmt()
