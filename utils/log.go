@@ -12,12 +12,8 @@ var logger *glog.Logger
 // 	InitLogger(glog.DebugLevel, "", glog.BasicOption(glog.WarnLevel, true, false, true))
 // }
 
-func InitLogger(level glog.LogLevel, folder string, options ...glog.Option) {
-	logger = glog.SetLogger(0, "glog", level)
-	if folder != "" {
-		logger.SetFolder(folder)
-	}
-	logger.SetOptions(options...)
+func SetLogger(lg *glog.Logger) {
+	logger = lg
 }
 
 func Debug(message string, a ...any) {

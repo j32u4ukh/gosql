@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/j32u4ukh/glog"
+	"github.com/j32u4ukh/glog/v2"
 
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/gdo"
@@ -15,6 +15,7 @@ import (
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
 	"github.com/j32u4ukh/gosql/sync"
+	"github.com/j32u4ukh/gosql/utils"
 
 	"github.com/pkg/errors"
 )
@@ -23,9 +24,12 @@ var synConfig *sync.Config
 var logger *glog.Logger
 
 func main() {
+	logger = glog.SetLogger(0, "demo_sync", glog.DebugLevel)
+	logger.SetFolder("../log")
+	utils.SetLogger(logger)
+
 	var err error
 	var path string
-	logger = glog.GetLogger("../log", "demo_sync", glog.DebugLevel, false)
 
 	if len(os.Args) == 1 {
 		path = "./config.yaml"

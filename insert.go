@@ -1,12 +1,10 @@
 package gosql
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/j32u4ukh/gosql/plugin"
 	"github.com/j32u4ukh/gosql/stmt"
-	"github.com/pkg/errors"
 )
 
 type InsertStmt struct {
@@ -41,10 +39,6 @@ func (s *InsertStmt) Insert(data any) error {
 
 func (s *InsertStmt) insert(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, toStringFunc func(v reflect.Value) string, insertFunc func(datas []string)) error {
 	datas := data.([]any)
-	err := s.checkInsertData(int32(len(datas)))
-	if err != nil {
-		return errors.Wrap(err, "檢查輸入數據時發生錯誤")
-	}
 	strData := []string{}
 	var d any
 	for _, d = range datas {
@@ -56,19 +50,6 @@ func (s *InsertStmt) insert(data any, nColumn int32, getColumnFunc func(idx int3
 
 func (s *InsertStmt) InsertRawData(datas []string) {
 	s.InsertStmt.Insert(datas)
-}
-
-func (s *InsertStmt) checkInsertData(nData int32) error {
-	// 確保 InsertStmt 有語法生成用的欄位名稱
-	if s.ColumnStmt == "" {
-		return errors.New("沒有有效的欄位名稱")
-	}
-
-	// 檢查輸入數據個數 與 欄位數 是否相符
-	if nData != s.nColumn {
-		return errors.New(fmt.Sprintf("輸入數據個數(%d)與欄位數(%d)不符", nData, s.nColumn))
-	}
-	return nil
 }
 
 func (s *InsertStmt) SetColumnNumber(nColumn int32) {

@@ -5,11 +5,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/j32u4ukh/glog"
+	"github.com/j32u4ukh/glog/v2"
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 )
 
 var db *database.Database
@@ -20,8 +21,11 @@ var logger *glog.Logger
 var table *stmt.Table
 
 func main() {
+	logger = glog.SetLogger(0, "demo_stmt", glog.DebugLevel)
+	utils.SetLogger(logger)
+	logger.SetFolder("../log")
+
 	command := strings.ToLower(os.Args[1])
-	logger = glog.GetLogger("../log", "demo_stmt", glog.DebugLevel, false)
 	conf, err := database.NewConfig("../config/config.yaml")
 
 	if err != nil {

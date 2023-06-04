@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/j32u4ukh/glog"
+	"github.com/j32u4ukh/glog/v2"
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/example/pbgo"
 	"github.com/j32u4ukh/gosql/gdo"
 	"github.com/j32u4ukh/gosql/proto/gstmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -32,8 +33,11 @@ var TID int = 1
 var logger *glog.Logger
 
 func main() {
+	logger = glog.SetLogger(0, "demo_hero", glog.DebugLevel)
+	utils.SetLogger(logger)
+	logger.SetFolder("../log")
+
 	var command string
-	logger = glog.GetLogger("../log", "demo_hero", glog.DebugLevel, false)
 
 	if len(os.Args) >= 2 {
 		TID, err = strconv.Atoi(os.Args[1])

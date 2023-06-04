@@ -5,11 +5,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/j32u4ukh/glog/v2"
 	"github.com/j32u4ukh/gosql"
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/plugin"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
+	"github.com/j32u4ukh/gosql/utils"
 )
 
 type Tsukue struct {
@@ -26,6 +28,9 @@ var sql string
 var err error
 
 func main() {
+	logger := glog.SetLogger(0, "demo_gosql", glog.DebugLevel)
+	utils.SetLogger(logger)
+
 	command := strings.ToLower(os.Args[1])
 	conf, err := database.NewConfig("../config/config.yaml")
 
@@ -148,6 +153,9 @@ func QueryDemo() {
 	}
 
 	fmt.Printf("result: %+v\n", result)
+	for i, data := range result.Datas {
+		fmt.Printf("i: %d, data: %+v\n", i, data)
+	}
 	table.PutSelector(selector)
 }
 
@@ -177,7 +185,7 @@ func UpdateDemo() {
 
 func DeleteDemo() {
 	deleter := table.GetDeleter()
-	where := gosql.WS().Eq("Id", 0)
+	where := gosql.WS().Eq("Id", 2)
 	deleter.SetCondition(where)
 	sql, err = deleter.ToStmt()
 
