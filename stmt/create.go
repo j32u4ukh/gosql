@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/pkg/errors"
 )
@@ -128,25 +127,22 @@ func (s *CreateStmt) ToStmt() (string, error) {
 	))
 
 	if s.TableParam != nil {
-		var kind, indexName, indexType string
 		var cols []string
+		var data *SqlIndex
 		it := s.TableParam.IterIndexMap()
 
 		for it.HasNext() {
-			data := it.Next().([]any)
-			kind = data[0].(string)
-			indexName = data[1].(string)
-			indexType = data[2].(string)
-			cols = data[3].(*cntr.Array[string]).Elements
+			data = it.Next()
+			cols = data.Cols.Elements
 
 			for i, col := range cols {
 				cols[i] = fmt.Sprintf("`%s`", col)
 			}
 
 			indexStmt := fmt.Sprintf("INDEX `%s` (%s) USING %s",
-				indexName, strings.Join(cols, ", "), indexType)
+				data.Name, strings.Join(cols, ", "), data.Algo)
 
-			if kind == "UNIQUE" {
+			if data.Kind == "UNIQUE" {
 				indexStmt = fmt.Sprintf("UNIQUE %s", indexStmt)
 			}
 

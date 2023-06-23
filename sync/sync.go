@@ -357,8 +357,8 @@ func (s *Synchronize) checkIndex() {
 	// 取得 fromTable 索引(Primary key 除外)的迭代器
 	it := s.fromTable.GetTableParam().IterIndexMap()
 
-	var data []any
-	var kind, indexName, fromIndexType string
+	var data *stmt.SqlIndex
+	var kind string
 	var fromCols, toCols *cntr.Array[string]
 	// var modifiedCols *array.Array[string]
 	var colNames []string
@@ -370,13 +370,11 @@ func (s *Synchronize) checkIndex() {
 	// 遍歷 Proto 定義的 index
 	for it.HasNext() {
 		// 0: kind string, 1: indexName string, 2: indexType string, 3: cols *array.Array[string]
-		data = it.Next().([]any)
-		kind = data[0].(string)
-		indexName = data[1].(string)
-		fromIndexType = data[2].(string)
-		fromCols = data[3].(*cntr.Array[string])
+		data = it.Next()
+		kind = data.Kind
+		fromCols = data.Cols
 
-		toCols = s.toTable.GetTableParam().GetIndexColumns(kind, indexName)
+		toCols = s.toTable.GetTableParam().GetIndexColumns(kind, data.Name)
 		needModify = false
 		needDrop = false
 
@@ -402,11 +400,11 @@ func (s *Synchronize) checkIndex() {
 				colNames = append(colNames, fmt.Sprintf("`%s`", element))
 			}
 
-			if needDrop && !s.dropList.Contains(indexName) {
-				s.dropList.Append(indexName)
+			if needDrop && !s.dropList.Contains(data.Name) {
+				s.dropList.Append(data.Name)
 			}
 
-			s.indexMap[indexName] = []string{kind, strings.Join(colNames, ", "), fromIndexType}
+			s.indexMap[data.Name] = []string{kind, strings.Join(colNames, ", "), data.Algo}
 		}
 	}
 
@@ -415,14 +413,12 @@ func (s *Synchronize) checkIndex() {
 	// 遍歷 toTable 當前定義的 index
 	for it.HasNext() {
 		// 0: kind string, 1: indexName string, 2: indexType string, 3: cols *array.Array[string]
-		data = it.Next().([]any)
-		kind = data[0].(string)
-		indexName = data[1].(string)
-		fromCols = s.fromTable.GetTableParam().GetIndexColumns(kind, indexName)
+		data = it.Next()
+		fromCols = s.fromTable.GetTableParam().GetIndexColumns(data.Kind, data.Name)
 
 		// toTable 有定義，但 fromTable 沒有定義
-		if fromCols == nil && !s.dropList.Contains(indexName) {
-			s.dropList.Append(indexName)
+		if fromCols == nil && !s.dropList.Contains(data.Name) {
+			s.dropList.Append(data.Name)
 		}
 	}
 }

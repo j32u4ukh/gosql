@@ -13,6 +13,23 @@ import (
 	"github.com/pkg/errors"
 )
 
+type SqlIndex struct {
+	Kind string
+	Name string
+	Algo string
+	Cols *cntr.Array[string]
+}
+
+func NewSqlIndex(kind string, name string, algo string, cols *cntr.Array[string]) *SqlIndex {
+	si := &SqlIndex{
+		Kind: kind,
+		Name: name,
+		Algo: algo,
+		Cols: cols.Clone(),
+	}
+	return si
+}
+
 type TableParam struct {
 	// Primary key
 	Primarys *cntr.Array[string]
@@ -217,9 +234,9 @@ func (p *TableParam) operateIndexMap(source string, target string, op func(strin
 }
 
 // 0: kind string, 1: indexName string, 2: indexType string, 3: cols *array.Array[string]
-func (p *TableParam) IterIndexMap() *cntr.Iterator {
+func (p *TableParam) IterIndexMap() *cntr.Iterator[*SqlIndex] {
 	isUnSorted := false
-	elements := []any{}
+	elements := []*SqlIndex{}
 	var kind, indexName string
 	var indexs map[string]*cntr.Array[string]
 	var cols *cntr.Array[string]
@@ -227,7 +244,7 @@ func (p *TableParam) IterIndexMap() *cntr.Iterator {
 	if isUnSorted {
 		for kind, indexs = range p.indexMap {
 			for indexName, cols = range indexs {
-				elements = append(elements, []any{kind, indexName, p.IndexType[indexName], cols})
+				elements = append(elements, NewSqlIndex(kind, indexName, p.IndexType[indexName], cols))
 			}
 		}
 
@@ -251,7 +268,7 @@ func (p *TableParam) IterIndexMap() *cntr.Iterator {
 
 			for _, indexName = range names {
 				cols = indexs[indexName]
-				elements = append(elements, []any{kind, indexName, p.IndexType[indexName], cols})
+				elements = append(elements, NewSqlIndex(kind, indexName, p.IndexType[indexName], cols))
 			}
 		}
 	}
@@ -279,15 +296,13 @@ func (p *TableParam) GetIndexColumns(kind string, indexName string) *cntr.Array[
 func (p *TableParam) GetAllColumns() *cntr.Array[string] {
 	columns := cntr.NewArray[string]()
 	it := p.IterIndexMap()
-	var data []any
-	var cols *cntr.Array[string]
+	var data *SqlIndex
 
 	// 0: kind string, 1: indexName string, 2: indexType string, 3: cols *array.Array[string]
 	for it.HasNext() {
-		data = it.Next().([]any)
-		cols = data[3].(*cntr.Array[string])
+		data = it.Next()
 
-		for _, col := range cols.Elements {
+		for _, col := range data.Cols.Elements {
 			if !columns.Contains(col) {
 				columns.Append(col)
 			}
