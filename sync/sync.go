@@ -360,16 +360,11 @@ func (s *Synchronize) checkIndex() {
 	var data *stmt.SqlIndex
 	var kind string
 	var fromCols, toCols *cntr.Array[string]
-	// var modifiedCols *array.Array[string]
 	var colNames []string
 	var needModify, needDrop bool
 
-	// 已修正(不重複)欄位名稱
-	// modifiedCols = array.NewArray[string]()
-
 	// 遍歷 Proto 定義的 index
 	for it.HasNext() {
-		// 0: kind string, 1: indexName string, 2: indexType string, 3: cols *array.Array[string]
 		data = it.Next()
 		kind = data.Kind
 		fromCols = data.Cols
@@ -412,7 +407,6 @@ func (s *Synchronize) checkIndex() {
 
 	// 遍歷 toTable 當前定義的 index
 	for it.HasNext() {
-		// 0: kind string, 1: indexName string, 2: indexType string, 3: cols *array.Array[string]
 		data = it.Next()
 		fromCols = s.fromTable.GetTableParam().GetIndexColumns(data.Kind, data.Name)
 

@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"sync"
 
+	"github.com/j32u4ukh/gosql/database"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -23,22 +24,14 @@ type Config struct {
 	// 來源 Proto 檔根目錄
 	ProtoFolder string `yaml:"ProtoFolder"`
 	// 來源 Database (同步後，應和這個相同)
-	FromDatabase *Database `yaml:"FromDatabase"`
+	FromDatabase *database.DatabaseConfig `yaml:"FromDatabase"`
 	// 來源表格名稱(Proto 檔名稱)
 	FromTables []string `yaml:"FromTables"`
 	// ========== 目標 ==========
 	// 目標 Database (同步對象，確保當前資料庫結構與來源相同)
-	ToDatabase   *Database `yaml:"ToDatabase"`
-	ToTables     []string  `yaml:"ToTables"`
-	AutoGenerate bool      `yaml:"AutoGenerate"`
-}
-
-type Database struct {
-	UserName string `yaml:"UserName"`
-	Password string `yaml:"Password"`
-	Server   string `yaml:"Server"`
-	Port     int    `yaml:"Port"`
-	Name     string `yaml:"Name"`
+	ToDatabase   *database.DatabaseConfig `yaml:"ToDatabase"`
+	ToTables     []string                 `yaml:"ToTables"`
+	AutoGenerate bool                     `yaml:"AutoGenerate"`
 }
 
 func NewConfig(path string) (*Config, error) {
@@ -110,7 +103,7 @@ func (c *Config) init() error {
 	return nil
 }
 
-func (c *Config) GetFromDatabase() *Database {
+func (c *Config) GetFromDatabase() *database.DatabaseConfig {
 	return c.FromDatabase
 }
 
@@ -126,7 +119,7 @@ func (c *Config) GetFromTables() []string {
 	return c.FromTables
 }
 
-func (c *Config) GetToDatabase() *Database {
+func (c *Config) GetToDatabase() *database.DatabaseConfig {
 	return c.ToDatabase
 }
 

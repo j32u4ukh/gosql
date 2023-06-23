@@ -67,7 +67,7 @@ func main() {
 
 func connect() (*database.Database, *database.Database, error) {
 	var fromDB, toDB *database.Database = nil, nil
-	var dc *sync.Database
+	var dc *database.DatabaseConfig
 	var err error
 
 	if synConfig.Mode == 2 || synConfig.Mode == 4 || synConfig.Mode == 6 {
