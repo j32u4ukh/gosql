@@ -171,15 +171,14 @@ func InsertProto(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Co
 
 func QueryProto(datas [][]string, generator func() any) (objs []any, err error) {
 	var i, length int32 = 0, int32(len(datas))
+	objs = make([]any, length)
 	if length == 0 {
-		return nil, errors.New("datas 的數據個數為 0")
+		return objs, nil
 	}
 
 	// Column 的資訊是根據 proto 檔生成的，因此沒有 struct 當中被跳過的三個欄位
 	// 因此需要校正兩者的欄位數量差異
 	nColumn := len(datas[0]) + 3
-
-	objs = make([]any, length)
 	var obj any
 	for i = 0; i < length; i++ {
 		obj, err = queryProto(datas[i], nColumn, generator)
