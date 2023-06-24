@@ -66,7 +66,7 @@ func main() {
 
 	dc := conf.GetDatabase()
 
-	db, err = database.Connect(GID, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
+	db, err = database.Connect(GID, dc.User, dc.Password, dc.Host, dc.Port, dc.DbName)
 	if err != nil {
 		fmt.Printf("與資料庫連線時發生錯誤, err: %+v\n", err)
 		return
@@ -80,7 +80,7 @@ func main() {
 		return
 	}
 
-	_, err = gstmt.SetGstmt(0, dc.Name, dialect.MARIA)
+	_, err = gstmt.SetGstmt(0, dc.DbName, dialect.MARIA)
 
 	if err != nil {
 		fmt.Printf("SetGstmt err: %+v\n", err)

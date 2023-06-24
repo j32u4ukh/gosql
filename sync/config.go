@@ -2,15 +2,11 @@ package sync
 
 import (
 	"io/ioutil"
-	"sync"
 
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
-
-var instance *Config
-var once sync.Once
 
 type Config struct {
 	/* 同步模式
