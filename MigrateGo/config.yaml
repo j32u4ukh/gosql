@@ -1,5 +1,5 @@
 Mode: 1
-ProtoFolder: "../pb"
+ProtoFolder: "../example/pb"
 FromDatabase:
   Host: "192.168.0.168"
   Port: 3306
@@ -15,4 +15,5 @@ ToDatabase:
   Password: "password"
 ToTable: "gold_log"
 Generate: true
-Print: true
+Print: false
+Sync: true

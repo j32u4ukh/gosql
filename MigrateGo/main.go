@@ -26,7 +26,7 @@ func main() {
 	length = len(os.Args)
 	err := loadConfig(os.Args)
 	if err != nil {
-		logger.Error("Failed to load config by args: %+v.", os.Args)
+		logger.Error("Failed to load config by args: %+v.\nError: %+v", os.Args, err)
 		return
 	}
 	err = loadParams(os.Args)
@@ -41,7 +41,13 @@ func main() {
 	}
 	fmt.Printf("synConfig: %+v\n", synConfig)
 	// TODO: 根據 synConfig 執行同步機制
-
+	s := sync.NewSynchronize()
+	err = s.Execute(synConfig)
+	if err != nil {
+		logger.Error("Synchronize execute err: %+v.", err)
+		return
+	}
+	fmt.Printf("Complete structure synchronization.")
 }
 
 func loadConfig(args []string) error {

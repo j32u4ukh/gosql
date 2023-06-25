@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "./test/main.go",
+            "program": "./example/demo_sync/main.go",
         }
     ]
 }

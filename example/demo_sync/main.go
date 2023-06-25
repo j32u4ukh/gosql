@@ -343,7 +343,6 @@ func checkAskAndSynchronize(s *sync.Synchronize) {
 			text = strings.ToUpper(text)
 
 			if text == "Y" {
-				s.SyncTableSchema(false)
 			} else {
 				logger.Info("取消資料表結構同步")
 			}
