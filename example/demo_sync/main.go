@@ -67,12 +67,12 @@ func main() {
 
 func connect() (*database.Database, *database.Database, error) {
 	var fromDB, toDB *database.Database = nil, nil
-	var dc *sync.Database
+	var dc *database.DatabaseConfig
 	var err error
 
 	if synConfig.Mode == 2 || synConfig.Mode == 4 || synConfig.Mode == 6 {
 		dc = synConfig.GetFromDatabase()
-		fromDB, err = database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
+		fromDB, err = database.Connect(0, dc.User, dc.Password, dc.Host, dc.Port, dc.DbName)
 
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "與資料庫連線時發生錯誤, err: %+v\n", err)
@@ -80,7 +80,7 @@ func connect() (*database.Database, *database.Database, error) {
 	}
 
 	dc = synConfig.GetToDatabase()
-	toDB, err = database.Connect(1, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
+	toDB, err = database.Connect(1, dc.User, dc.Password, dc.Host, dc.Port, dc.DbName)
 
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "與資料庫連線時發生錯誤, err: %+v\n", err)
@@ -169,8 +169,8 @@ func protoToDb(toDB *database.Database, fromTableName string, toTableName string
 
 	s := sync.NewProtoToDbSync(toDB, toTableName, dialect.MARIA)
 	s.SetFromTable(t)
-	s.SetFromDbName(synConfig.GetToDatabase().Name)
-	s.SetToDbName(synConfig.GetToDatabase().Name)
+	s.SetFromDbName(synConfig.GetToDatabase().DbName)
+	s.SetToDbName(synConfig.GetToDatabase().DbName)
 
 	// 讀取資料庫結構數據
 	s.Init("to")
@@ -205,7 +205,7 @@ func dbToDb(fromSgl *database.Database, fromTableNme string, toSgl *database.Dat
 	s := sync.NewDbToDbSync(fromSgl, fromTableNme, toSgl, toTableName, dialect.MARIA)
 
 	fromConfig := synConfig.GetFromDatabase()
-	s.SetFromDbName(fromConfig.Name)
+	s.SetFromDbName(fromConfig.DbName)
 
 	// 讀取資料庫結構數據
 	s.Init("from")
@@ -236,7 +236,7 @@ func dbToDb(fromSgl *database.Database, fromTableNme string, toSgl *database.Dat
 		return
 	}
 
-	s.SetToDbName(synConfig.GetToDatabase().Name)
+	s.SetToDbName(synConfig.GetToDatabase().DbName)
 
 	// 讀取資料庫結構數據
 	s.Init("to")
@@ -248,7 +248,7 @@ func dbToDb(fromSgl *database.Database, fromTableNme string, toSgl *database.Dat
 func getAllTableNames(toSgl *database.Database) []string {
 	tables := []string{}
 	sql := fmt.Sprintf("SELECT `TABLE_NAME` FROM INFORMATION_SCHEMA.`TABLES` WHERE TABLE_SCHEMA = '%s';",
-		synConfig.GetToDatabase().Name)
+		synConfig.GetToDatabase().DbName)
 	result, err := toSgl.Query(sql)
 
 	if err != nil {
@@ -343,7 +343,6 @@ func checkAskAndSynchronize(s *sync.Synchronize) {
 			text = strings.ToUpper(text)
 
 			if text == "Y" {
-				s.SyncTableSchema(false)
 			} else {
 				logger.Info("取消資料表結構同步")
 			}

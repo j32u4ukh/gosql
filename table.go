@@ -155,6 +155,10 @@ func (t *Table) GetColumn(idx int32) *stmt.Column {
 	return nil
 }
 
+func (t *Table) GetColumnNumber() int32 {
+	return int32(len(t.creater.Columns))
+}
+
 func (t *Table) GetColumnByName(name string) *stmt.Column {
 	for _, column := range t.creater.Columns {
 		if column.Name == name {
@@ -164,14 +168,36 @@ func (t *Table) GetColumnByName(name string) *stmt.Column {
 	return nil
 }
 
-func (t *Table) GetColumnNames() []string {
+func (t *Table) GetColumnNames(full bool) []string {
 	names := []string{}
-	names = append(names, t.ColumnNames.Elements...)
+	if full {
+		for _, column := range t.creater.Columns {
+			names = append(names, column.Name)
+		}
+	} else {
+		names = append(names, t.ColumnNames.Elements...)
+	}
 	return names
 }
 
 func (t *Table) GetIndexByName(name string) int32 {
 	return int32(t.ColumnNames.Find(name))
+}
+
+func (t *Table) GetDbName() string {
+	return t.creater.DbName
+}
+
+func (t *Table) GetTableName() string {
+	return t.creater.TableName
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Index
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (t *Table) GetTableParam() *stmt.TableParam {
+	return t.creater.GetTableParam()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -278,7 +304,6 @@ func (t *Table) PutDeleter(s *DeleteStmt) {
 func (t *Table) RefreshColumnOrder(orders []string) *cntr.Array[string] {
 	changes := cntr.NewArray[string]()
 	changed := t.refreshColumnOrder(orders)
-
 	for changed != "" {
 		changes.Append(changed)
 		changed = t.refreshColumnOrder(orders)

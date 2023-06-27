@@ -21,4 +21,5 @@ ToTables:
   # - "api_log"
   - "gold_log"
   # - "pay_log"
-AutoGenerate: true
+Generate:
+Print:

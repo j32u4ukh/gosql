@@ -8,9 +8,9 @@ type CreateStmt struct {
 	*stmt.CreateStmt
 }
 
-func NewCreateStmt(name string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string) *CreateStmt {
+func NewCreateStmt(tableName string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string) *CreateStmt {
 	s := &CreateStmt{
-		CreateStmt: stmt.NewCreateStmt(name, tableParam, columnParams, engine, collate),
+		CreateStmt: stmt.NewCreateStmt(tableName, tableParam, columnParams, engine, collate),
 	}
 	return s
 }

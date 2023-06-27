@@ -19,10 +19,10 @@ type CreateStmt struct {
 	db         *database.Database
 }
 
-func NewCreateStmt(name string, tableParam *TableParam, columnParams []*ColumnParam, engine string, collate string) *CreateStmt {
+func NewCreateStmt(tableName string, tableParam *TableParam, columnParams []*ColumnParam, engine string, collate string) *CreateStmt {
 	s := &CreateStmt{
 		DbName:     "",
-		TableName:  name,
+		TableName:  tableName,
 		TableParam: tableParam,
 		Columns:    []*Column{},
 		Engine:     engine,
@@ -94,7 +94,7 @@ func (s *CreateStmt) SetTableParam(tableParam *TableParam) {
 }
 
 func (s *CreateStmt) GetTableParam() *TableParam {
-	return s.TableParam
+	return s.TableParam.Clone()
 }
 
 func (s *CreateStmt) ToStmt() (string, error) {

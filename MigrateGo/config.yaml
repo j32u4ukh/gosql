@@ -1,0 +1,19 @@
+Mode: 1
+ProtoFolder: "../example/pb"
+FromDatabase:
+  Host: "192.168.0.168"
+  Port: 3306
+  DbName: "pekomiko"
+  User: "db_user"
+  Password: "password"
+FromTable: "gold_log"
+ToDatabase:
+  Host: "192.168.0.168"
+  Port: 3306
+  DbName: "pekomiko"
+  User: "db_user"
+  Password: "password"
+ToTable: "gold_log"
+Generate: true
+Print: false
+Sync: true

@@ -42,7 +42,7 @@ func main() {
 	}
 
 	dc := conf.GetDatabase()
-	db, err := database.Connect(0, dc.UserName, dc.Password, dc.Server, dc.Port, dc.Name)
+	db, err := database.Connect(0, dc.User, dc.Password, dc.Host, dc.Port, dc.DbName)
 
 	if err != nil {
 		fmt.Printf("與資料庫連線時發生錯誤, err: %+v\n", err)
@@ -66,7 +66,7 @@ func main() {
 	table = gosql.NewTable(tableName, tableParams, columnParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
 	table.Init(&gosql.TableConfig{
 		Db:               db,
-		DbName:           dc.Name,
+		DbName:           dc.DbName,
 		UseAntiInjection: false,
 		PtrToDbFunc:      plugin.ProtoToDb,
 		InsertFunc:       plugin.InsertProto,
