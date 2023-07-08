@@ -1,6 +1,7 @@
 package stmt
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -102,7 +103,6 @@ func (p *TableParam) ParserConfig(config string) {
 	tpc, err := NewTableParamConfig(config)
 
 	if err != nil {
-		// glog.Error("gpsql", "Error: %+v", err)
 		return
 	}
 
@@ -227,7 +227,7 @@ func (p *TableParam) operateIndexMap(source string, target string, op func(strin
 		for indexName, cols := range indexs {
 			err = op(kind, indexName, cols)
 			if err != nil {
-				fmt.Printf("(p *TableParam) operateIndexMap | Error: %+v", err)
+				utils.Error("執行 op 函式時發生錯誤, err: %+v", err)
 			}
 		}
 	}
@@ -313,9 +313,15 @@ func (p *TableParam) GetAllColumns() *cntr.Array[string] {
 }
 
 func (p TableParam) String() string {
-	bs, _ := json.Marshal(p.indexMap)
-	str := fmt.Sprintf("TableParam\nPrimarys: %+v\nIndexs: %+v", p.Primarys, string(bs))
-	return str
+	bs, err := json.Marshal(p.indexMap)
+	var buffer bytes.Buffer
+	buffer.WriteString(fmt.Sprintf("TableParam\nPrimarys: %+v", p.Primarys))
+	if err != nil {
+		utils.Error("Failed to marshal indexMap, err: %+v", err)
+	} else {
+		buffer.WriteString(fmt.Sprintf("\nIndexs: %+v", string(bs)))
+	}
+	return buffer.String()
 }
 
 func (p TableParam) Clone() *TableParam {
@@ -448,14 +454,10 @@ func NewColumnParam(number int, name string, kind datatype.DataType, dial dialec
 }
 
 func (p *ColumnParam) parserConfig(config string) {
-	// glog.Trace("gosql", "tag: %s", tag)
 	cfg, err := NewColumnParamConfig(config)
-
 	if err != nil {
-		// glog.Error("gosql", "Error: %+v", err)
 		return
 	}
-
 	p.Config.merge(cfg)
 }
 

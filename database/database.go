@@ -108,25 +108,19 @@ func (d *Database) Use(dbName string) error {
 
 func (d *Database) IsTableExists(sql string) (bool, error) {
 	rows, err := d.db.Query(sql)
-	defer rows.Close()
-
 	if err != nil {
-		fmt.Printf("Error: %+v", err)
-		return false, err
+		return false, errors.Wrapf(err, "檢查表格是否存在時發生錯誤, sql: %s", sql)
 	}
-
+	defer rows.Close()
 	return rows.Next(), nil
 }
 
 func (d *Database) Exec(sql string, args ...any) (*SqlResult, error) {
 	result, err := d.db.Exec(sql, args...)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "執行 SQL 語法時發生錯誤, sql: %s, args: %+v", sql, args)
 	}
-
 	gr := &SqlResult{}
-
 	// 並非所有資料庫皆支援這兩項數值，因此不處理返回的錯誤
 	gr.LastInsertId, _ = result.LastInsertId()
 	gr.RowsAffected, _ = result.RowsAffected()

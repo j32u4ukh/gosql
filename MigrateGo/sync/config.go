@@ -69,7 +69,7 @@ func (c *Config) LoadFile(path string) error {
 	err = c.CheckParams()
 
 	if err != nil {
-		return errors.Wrapf(err, "Failed to initialize.")
+		return errors.Wrapf(err, "Failed to initialize parameters.")
 	}
 
 	return nil

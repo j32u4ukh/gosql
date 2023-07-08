@@ -149,10 +149,10 @@ func MapValue(kind reflect.Kind, value any) reflect.Value {
 		case reflect.Int64:
 			return reflect.ValueOf(int64(v))
 		default:
-			fmt.Printf("MapValue | vt: %v\n", vt)
 			return reflect.ValueOf(int(v))
 		}
 	default:
+		fmt.Printf("MapValue | vt: %v\n", vt)
 		return reflect.ValueOf(value)
 	}
 }

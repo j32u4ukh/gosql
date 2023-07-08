@@ -40,7 +40,7 @@ func main() {
 		return
 	}
 	fmt.Printf("synConfig: %+v\n", synConfig)
-	// TODO: 根據 synConfig 執行同步機制
+	// 根據 synConfig 執行同步機制
 	s := sync.NewSynchronize()
 	err = s.Execute(synConfig)
 	if err != nil {
@@ -51,6 +51,7 @@ func main() {
 }
 
 func loadConfig(args []string) error {
+	// TODO: 改用 managedExecute
 	for i := 0; i < length; i++ {
 		if args[i] == "--config" {
 			if i+1 < length {

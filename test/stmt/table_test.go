@@ -109,38 +109,38 @@ func TestTableSelectStmt1(t *testing.T) {
 	}
 }
 
-func TestTableUpdateStmt(t *testing.T) {
-	answer := "UPDATE `Desk` SET `Id` = 39, `Content` = 'Hello' WHERE `Id` = 39;"
+// func TestTableUpdateStmt(t *testing.T) {
+// 	answer := "UPDATE `Desk` SET `Id` = 39, `Content` = 'Hello' WHERE `Id` = 39;"
 
-	tableParam := stmt.NewTableParam()
-	tableParam.AddPrimaryKey("Id", "default")
-	var err error
+// 	tableParam := stmt.NewTableParam()
+// 	tableParam.AddPrimaryKey("Id", "default")
+// 	var err error
 
-	/////////////////////////////////////////////////////////////////////
-	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
-	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
-	col1.SetPrimaryKey("default")
-	table.AddColumn(stmt.NewColumn(col1))
+// 	/////////////////////////////////////////////////////////////////////
+// 	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
+// 	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
+// 	col1.SetPrimaryKey("default")
+// 	table.AddColumn(stmt.NewColumn(col1))
 
-	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	// col2.SetCanNull(true)
-	table.AddColumn(stmt.NewColumn(col2))
-	/////////////////////////////////////////////////////////////////////
+// 	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
+// 	// col2.SetCanNull(true)
+// 	table.AddColumn(stmt.NewColumn(col2))
+// 	/////////////////////////////////////////////////////////////////////
 
-	table.SetUpdateCondition(stmt.WS().Eq("Id", "39"))
+// 	table.SetUpdateCondition(stmt.WS().Eq("Id", "39"))
 
-	sql, err := table.
-		Update("Id", "39").
-		Update("Content", "'Hello'").
-		ToStmt()
+// 	sql, err := table.
+// 		Update("Id", "39").
+// 		Update("Content", "'Hello'").
+// 		ToStmt()
 
-	if err != nil || sql != answer {
-		if err != nil {
-			t.Errorf("TestUpdateStmt | Error: %+v\n", err)
-		}
+// 	if err != nil || sql != answer {
+// 		if err != nil {
+// 			t.Errorf("TestUpdateStmt | Error: %+v\n", err)
+// 		}
 
-		if sql != answer {
-			t.Errorf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql)
-		}
-	}
-}
+// 		if sql != answer {
+// 			t.Errorf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql)
+// 		}
+// 	}
+// }

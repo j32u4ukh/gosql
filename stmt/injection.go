@@ -18,19 +18,18 @@ func AntiInjection(compoment string) (string, error) {
 	hasPrefix := strings.HasPrefix(compoment, "'")
 	hasSuffix := strings.HasSuffix(compoment, "'")
 
-	// 前後都沒有單引號，預期傳入的是數字
-	if !hasPrefix && !hasSuffix {
-		if containSymbols(compoment) {
-			return "", errors.New(fmt.Sprintf("預期傳入數字，但卻包含特殊符號，此為不合法參數(%s)", compoment))
+	if !hasPrefix || !hasSuffix {
+		// 前後都沒有單引號，預期傳入的是數字
+		if !hasPrefix && !hasSuffix {
+			if containSymbols(compoment) {
+				return "", errors.New(fmt.Sprintf("預期傳入數字，但卻包含特殊符號，此為不合法參數(%s)", compoment))
+			}
+			return compoment, nil
+		} else {
+			// 數字不會有單引號，而字串要求前後都要有單引號
+			return "", errors.New(fmt.Sprintf("只有前端或後端有單引號(')，此為不合法參數(%s)", compoment))
 		}
-		return compoment, nil
 	}
-
-	// 數字不會有單引號，而字串要求前後都要有單引號
-	if (hasPrefix && !hasSuffix) || (!hasPrefix && hasSuffix) {
-		return "", errors.New(fmt.Sprintf("只有前端或後端有單引號(')，此為不合法參數(%s)", compoment))
-	}
-
 	return fmt.Sprintf("'%s'", AntiInjectionString(strings.Trim(compoment, "'"))), nil
 }
 
