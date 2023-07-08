@@ -6,15 +6,10 @@ import (
 
 	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/database"
-	"github.com/pkg/errors"
 )
 
 type Table struct {
 	*CreateStmt
-	*InsertStmt
-	*SelectStmt
-	*UpdateStmt
-	*DeleteStmt
 	ColumnNames *cntr.Array[string]
 	nColumn     int32
 
@@ -30,10 +25,6 @@ type Table struct {
 func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, engine string, collate string) *Table {
 	t := &Table{
 		CreateStmt:  NewCreateStmt(name, tableParam, columnParams, engine, collate),
-		InsertStmt:  NewInsertStmt(name),
-		SelectStmt:  NewSelectStmt(name),
-		UpdateStmt:  NewUpdateStmt(name),
-		DeleteStmt:  NewDeleteStmt(name),
 		ColumnNames: cntr.NewArray[string](),
 	}
 	t.insertPool = &sync.Pool{
@@ -64,7 +55,6 @@ func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, 
 			}
 			t.ColumnNames.Append(column.Name)
 		}
-		t.InsertStmt.SetColumnNames(t.ColumnNames.Elements)
 	}
 	return t
 }
@@ -72,14 +62,6 @@ func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, 
 func (t *Table) SetDb(db *database.Database) {
 	t.CreateStmt.db = db
 	t.CreateStmt.DbName = db.DbName
-}
-
-func (t *Table) SetDbName(dbName string) {
-	t.CreateStmt.SetDbName(dbName)
-	t.InsertStmt.SetDbName(dbName)
-	t.SelectStmt.SetDbName(dbName)
-	t.UpdateStmt.SetDbName(dbName)
-	t.DeleteStmt.SetDbName(dbName)
 }
 
 func (t *Table) GetDbName() string {
@@ -116,7 +98,6 @@ func (t *Table) AddColumn(column *Column) *Table {
 		if column.Default != "current_timestamp()" {
 			t.ColumnNames.Append(column.Name)
 			t.nColumn = int32(t.ColumnNames.Length())
-			t.InsertStmt.SetColumnNames(t.ColumnNames.Elements)
 		}
 	}
 	return t
@@ -142,17 +123,6 @@ func (t *Table) GetInserter() *InsertStmt {
 func (t *Table) PutInserter(s *InsertStmt) {
 	s.Release()
 	t.insertPool.Put(s)
-}
-
-func (t *Table) BuildInsertStmt() (string, error) {
-	sql, err := t.InsertStmt.ToStmt()
-	t.InsertStmt.Release()
-
-	if err != nil {
-		return "", errors.Wrap(err, "生成 InsertStmt 時發生錯誤")
-	}
-
-	return sql, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,112 +172,3 @@ func (t *Table) PutDeleter(s *DeleteStmt) {
 	s.Release()
 	t.deletePool.Put(s)
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Sync
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// 根據傳入的欄位名稱列表 orders，對欄位進行重新排序
-// return
-// 	- 被修改順序的欄位名稱
-// func (t *Table) RefreshColumnOrder(orders []string) *cntr.Array[string] {
-// 	changes := cntr.NewArray[string]()
-// 	changed := t.refreshColumnOrder(orders)
-
-// 	for changed != "" {
-// 		changes.Append(changed)
-// 		changed = t.refreshColumnOrder(orders)
-// 	}
-// 	return changes
-// }
-
-// func (t *Table) refreshColumnOrder(orders []string) string {
-// 	changed := ""
-// 	var i, j int
-// 	var order string = ""
-// 	var col *Column
-
-// 	for i, order = range orders {
-// 		for j, col = range t.CreateStmt.Columns {
-// 			if col.Name == order {
-// 				if i != j {
-// 					changed = order
-// 				}
-// 				break
-// 			}
-// 		}
-// 		if changed != "" {
-// 			break
-// 		}
-// 	}
-// 	if changed != "" {
-// 		col = t.CreateStmt.Columns[i]
-// 		t.CreateStmt.Columns[i] = t.CreateStmt.Columns[j]
-// 		t.CreateStmt.Columns[j] = col
-// 	}
-// 	return changed
-// }
-
-// NOTE: 根據 Sync 的需求，有需要再 Clone 即可
-// func (t *Table) SyncClone() *Table {
-// 	clone := &Table{
-// 		CreateStmt: t.CreateStmt.Clone(),
-// 		insertPool: t.insertPool,
-// 		queryPool:  t.queryPool,
-// 		updatePool: t.updatePool,
-// 		deletePool: t.deletePool,
-// 	}
-// 	return clone
-// }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Column
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// func (t *Table) GetColumnNumber() int32 {
-// 	return t.nColumn
-// }
-
-// func (t *Table) SetColumn(idx int32, column *Column) error {
-// 	if t.nColumn-1 < idx {
-// 		return errors.New(fmt.Sprintf("idx(%d) out of length(%d).", idx, t.nColumn-1))
-// 	}
-
-// 	origin := t.Columns[idx]
-
-// 	// 更新 tableParam 當中的欄位名稱(origin.Name -> column.Name)
-// 	if origin.Name != column.Name {
-// 		t.TableParam.UpdateIndexName(origin.Name, column.Name)
-// 	}
-
-// 	t.Columns[idx] = column
-// 	return nil
-// }
-
-// func (t *Table) GetColumn(idx int32) *Column {
-// 	if idx < int32(len(t.Columns)) {
-// 		return t.Columns[idx]
-// 	}
-// 	return nil
-// }
-
-// func (t *Table) GetColumnByName(name string) (int32, *Column) {
-// 	for i, column := range t.Columns {
-// 		if column.Name == name {
-// 			return int32(i), column
-// 		}
-// 	}
-// 	return -1, nil
-// }
-
-// func (t *Table) GetColumnNames() *cntr.Array[string] {
-// 	return t.ColumnNames.Clone()
-// }
-
-// func (t *Table) GetPrimaryColumn() []*Column {
-// 	pks := []*Column{}
-// 	for _, col := range t.Columns {
-// 		if col.IsPrimaryKey {
-// 			pks = append(pks, col)
-// 		}
-// 	}
-// 	return pks
-// }

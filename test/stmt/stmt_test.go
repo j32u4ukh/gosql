@@ -261,36 +261,38 @@ func TestBatchUpdate(t *testing.T) {
 	}
 }
 
-// func TestDeleteStmt(t *testing.T) {
-// 	answer := "DELETE FROM `demo2`.`Desk` WHERE `Id` = 39;"
+func TestDeleteStmt(t *testing.T) {
+	answer := "DELETE FROM `demo2`.`Desk` WHERE `Id` = 39;"
 
-// 	tableParam := stmt.NewTableParam()
-// 	tableParam.AddPrimaryKey("Id", "default")
-// 	var err error
+	tableParam := stmt.NewTableParam()
+	tableParam.AddPrimaryKey("Id", "default")
+	var err error
 
-// 	/////////////////////////////////////////////////////////////////////
-// 	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
-// 	table.SetDbName("demo2")
+	/////////////////////////////////////////////////////////////////////
+	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
+	table.SetDbName("demo2")
 
-// 	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
-// 	col1.SetPrimaryKey("default")
-// 	table.AddColumn(stmt.NewColumn(col1))
+	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
+	col1.SetPrimaryKey("default")
+	table.AddColumn(stmt.NewColumn(col1))
 
-// 	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-// 	// col2.SetCanNull(true)
-// 	table.AddColumn(stmt.NewColumn(col2))
-// 	/////////////////////////////////////////////////////////////////////
+	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
+	// col2.SetCanNull(true)
+	table.AddColumn(stmt.NewColumn(col2))
+	/////////////////////////////////////////////////////////////////////
 
-// 	table.SetDeleteCondition(stmt.WS().Eq("Id", "39"))
-// 	sql, err := table.BuildDeleteStmt()
+	deleter := stmt.NewDeleteStmt("Desk")
+	deleter.SetDbName("demo2")
+	deleter.SetCondition(stmt.WS().Eq("Id", "39"))
+	sql, err := deleter.ToStmt()
 
-// 	if err != nil || sql != answer {
-// 		if err != nil {
-// 			t.Errorf("TestDeleteStmt | Error: %+v\n", err)
-// 		}
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestDeleteStmt | Error: %+v\n", err)
+		}
 
-// 		if sql != answer {
-// 			t.Errorf("TestDeleteStmt |\nanswer: %s\nsql: %s", answer, sql)
-// 		}
-// 	}
-// }
+		if sql != answer {
+			t.Errorf("TestDeleteStmt |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
