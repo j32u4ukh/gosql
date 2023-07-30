@@ -9,7 +9,6 @@ import (
 	"github.com/j32u4ukh/gosql/database"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
-	"github.com/j32u4ukh/gosql/utils"
 	"github.com/pkg/errors"
 )
 
@@ -81,7 +80,6 @@ func NewTable(tableName string, tableParam *stmt.TableParam, columnParams []*stm
 			if column.IgnoreThis {
 				continue
 			}
-			utils.Debug("name: %s, default: %s", column.Name, column.Default)
 			switch column.Default {
 			// 資料庫自動生成欄位
 			case "current_timestamp()", "AI":

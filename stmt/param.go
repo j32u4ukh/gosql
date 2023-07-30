@@ -657,7 +657,8 @@ func (p *ColumnParam) Redefine() {
 }
 
 func (p *ColumnParam) String() string {
-	return fmt.Sprintf("FieldNumber: %d, Type: %s, Name: %s", p.FieldNumber, p.Type, p.Name)
+	return fmt.Sprintf("%d) Name: %s, Type: %s, Size: %d, IsPrimaryKey: %v, Default: %s, Update: %s",
+		p.FieldNumber, p.Name, p.Type, p.Size, p.IsPrimaryKey, p.Default, p.Update)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

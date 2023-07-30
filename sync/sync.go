@@ -5,19 +5,24 @@ import (
 	"strings"
 
 	"github.com/j32u4ukh/cntr"
+	"github.com/j32u4ukh/gosql"
 	"github.com/j32u4ukh/gosql/database"
-	"github.com/j32u4ukh/gosql/gdo"
+	"github.com/j32u4ukh/gosql/plugin"
 	"github.com/j32u4ukh/gosql/stmt"
 	"github.com/j32u4ukh/gosql/stmt/dialect"
-	"github.com/j32u4ukh/gosql/utils"
 	"github.com/pkg/errors"
 )
 
+// 同步模式
 type SyncMode byte
 
 const (
-	ProtoToDb SyncMode = iota
-	DbToDb
+	// Proto 檔 -> Db 中的 Table
+	NoneMode SyncMode = 0
+	// Proto 檔 -> Db 中的 Table
+	ProtoToDbMode SyncMode = 1
+	// Db 中的 Table -> 另一個 Db 中 Table
+	DbToDbMode SyncMode = 2
 )
 
 type Synchronize struct {
@@ -25,11 +30,11 @@ type Synchronize struct {
 	Mode SyncMode
 	// From: 同步後預期的狀態
 	fromDB    *database.Database
-	fromTable *gdo.Table
+	fromTable *gosql.Table
 	// To: 要被改變的對象
 	toDB        *database.Database
-	toTable     *gdo.Table
-	originTable *gdo.Table
+	toTable     *gosql.Table
+	originTable *gosql.Table
 	// 需 Change/Add 的欄位名稱
 	// key: 更新後欄位名稱
 	// add: -
@@ -40,76 +45,169 @@ type Synchronize struct {
 	// 需 ADD 的索引名稱
 	indexMap     map[string][]string
 	changedOrder *cntr.Array[string]
+	// 若表格結構有差異，是否印出即將執行的指令?
+	Print bool
+	// 若表格結構有差異，是否執行同步
+	Sync bool
 }
 
-// ====================================================================================================
-// 根據不同模式，調用不同建構子
-// ====================================================================================================
-func NewProtoToDbSync(db *database.Database, tableNme string, dial dialect.SQLDialect) *Synchronize {
+func NewSynchronize() *Synchronize {
 	s := &Synchronize{
-		Mode:     ProtoToDb,
-		toDB:     db,
-		toTable:  gdo.NewTable(tableNme, stmt.NewTableParam(), nil, stmt.ENGINE, stmt.COLLATE, dial),
-		alterMap: map[string][]string{},
-		dropList: cntr.NewArray[string](),
-		indexMap: map[string][]string{},
+		Mode:         NoneMode,
+		fromDB:       nil,
+		fromTable:    nil,
+		toDB:         nil,
+		toTable:      nil,
+		originTable:  nil,
+		alterMap:     make(map[string][]string),
+		dropList:     &cntr.Array[string]{},
+		indexMap:     make(map[string][]string),
+		changedOrder: &cntr.Array[string]{},
 	}
 	return s
 }
 
-func NewDbToDbSync(fromDB *database.Database, fromTableNme string, toDB *database.Database, toTableNme string, dial dialect.SQLDialect) *Synchronize {
-	s := &Synchronize{
-		Mode:      DbToDb,
-		fromDB:    fromDB,
-		fromTable: gdo.NewTable(fromTableNme, stmt.NewTableParam(), nil, stmt.ENGINE, stmt.COLLATE, dial),
-		toDB:      toDB,
-		toTable:   gdo.NewTable(toTableNme, stmt.NewTableParam(), nil, stmt.ENGINE, stmt.COLLATE, dial),
-		alterMap:  map[string][]string{},
-		dropList:  cntr.NewArray[string](),
-		indexMap:  map[string][]string{},
+func (s *Synchronize) Execute(config *Config) error {
+	err := s.LoadConfig(config)
+	if err != nil {
+		return errors.Wrap(err, "Failed to load config.")
 	}
-	return s
+
+	// 檢查表格是否存在
+	var isTableExists bool
+
+	switch s.Mode {
+	case DbToDbMode:
+		isTableExists, err = s.fromDB.IsTableExists(stmt.IsTableExists(s.fromDB.DbName, config.FromTable))
+
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("Failed to check table %s.", config.ToTable))
+		}
+
+		// 若表格不存在
+		if !isTableExists {
+			return errors.Errorf("來源表格 %s 不存在", config.ToTable)
+		}
+
+		// 讀取資料庫結構數據
+		s.InitTable("from")
+	}
+
+	isTableExists, err = s.toDB.IsTableExists(stmt.IsTableExists(s.toDB.DbName, config.ToTable))
+
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Failed to check table %s.", config.ToTable))
+	}
+
+	// 若表格不存在
+	if !isTableExists {
+		// 若需要生成表格
+		if config.Generate {
+			_, err = s.toTable.Creater().Exec()
+			if err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Failed to create table %s.", config.ToTable))
+			}
+		}
+		return nil
+	}
+
+	// 讀取資料庫結構數據
+	s.InitTable("to")
+
+	err = s.CheckTableStructure()
+
+	if err != nil {
+		return errors.Wrap(err, "Failed to check table structure.")
+	}
+
+	// 若有表格差異
+	if s.PrintCheckResult() {
+		if s.Sync {
+			err = s.SyncTableSchema(true)
+			if err != nil {
+				return errors.Wrap(err, "資料表結構同步時發生錯誤")
+			}
+		} else if s.Print {
+			s.SyncTableSchema(false)
+		}
+	}
+	return nil
+}
+
+func (s *Synchronize) LoadConfig(config *Config) error {
+	var dc *database.DatabaseConfig
+	var err error
+	s.Mode = config.Mode
+	s.Print = config.Print
+	s.Sync = config.Sync
+	// ==================================================
+	// Connnect
+	// ==================================================
+	switch s.Mode {
+	case DbToDbMode:
+		dc = config.FromDatabase
+		s.fromDB, err = database.Connect(0, dc.User, dc.Password, dc.Host, dc.Port, dc.DbName)
+		if err != nil {
+			return errors.Wrapf(err, "與資料庫(%s:%d)連線時發生錯誤, err: %+v", dc.Host, dc.Port, err)
+		}
+	}
+	dc = config.ToDatabase
+	s.toDB, err = database.Connect(1, dc.User, dc.Password, dc.Host, dc.Port, dc.DbName)
+	if err != nil {
+		return errors.Wrapf(err, "與資料庫(%s:%d)連線時發生錯誤, err: %+v", dc.Host, dc.Port, err)
+	}
+	s.toTable = gosql.NewTable(config.FromTable, stmt.NewTableParam(), nil, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	s.toTable.Init(&gosql.TableConfig{
+		Db:               s.toDB,
+		DbName:           dc.DbName,
+		UseAntiInjection: false,
+		PtrToDbFunc:      plugin.ProtoToDb,
+		InsertFunc:       plugin.InsertProto,
+		QueryFunc:        plugin.QueryProto,
+		UpdateAnyFunc:    plugin.UpdateProto,
+	})
+	switch s.Mode {
+	case ProtoToDbMode:
+		protoPath := fmt.Sprintf("%s/%s.proto", config.ProtoFolder, config.FromTable)
+		tableParams, columnParams, err := plugin.GetProtoParams(protoPath, dialect.MARIA)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("Failed to get proto parameters from %s.", protoPath))
+		}
+		s.fromTable = gosql.NewTable(config.FromTable, tableParams, columnParams, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+		s.fromTable.Init(&gosql.TableConfig{
+			Db:               s.toDB,
+			DbName:           dc.DbName,
+			UseAntiInjection: false,
+			PtrToDbFunc:      plugin.ProtoToDb,
+			InsertFunc:       plugin.InsertProto,
+			QueryFunc:        plugin.QueryProto,
+			UpdateAnyFunc:    plugin.UpdateProto,
+		})
+	}
+	return nil
 }
 
 // ====================================================================================================
 
-func (s *Synchronize) SetFromTable(t *gdo.Table) {
-	s.fromTable = t
-}
-
-func (s *Synchronize) GetFromTable() *gdo.Table {
-	return s.fromTable
-}
-
-func (s *Synchronize) SetFromDbName(dbName string) {
-	s.fromTable.SetDbName(dbName)
-}
-
-func (s *Synchronize) SetToDbName(dbName string) {
-	s.toTable.SetDbName(dbName)
-}
-
-func (s *Synchronize) Init(source string) error {
+func (s *Synchronize) InitTable(source string) error {
 	s.queryInformationSchemaColumns(source)
 	s.quertInformationSchemaStatistics(source)
-
 	if source == "to" {
 		s.originTable = s.toTable.SyncClone()
 	}
-
 	return nil
 }
 
 // 根據表格 INFORMATION_SCHEMA.`COLUMNS` 對 ProtoTable 的欄位做初始化
 func (s *Synchronize) queryInformationSchemaColumns(source string) {
-	var sgl *database.Database
-	var t *gdo.Table
+	var db *database.Database
+	var t *gosql.Table
 
 	if source == "from" {
-		sgl = s.fromDB
+		db = s.fromDB
 		t = s.fromTable
 	} else {
-		sgl = s.toDB
+		db = s.toDB
 		t = s.toTable
 	}
 
@@ -127,7 +225,7 @@ func (s *Synchronize) queryInformationSchemaColumns(source string) {
 	queryColumns := strings.Join(columnNames, ", ")
 	where := fmt.Sprintf("WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s'", t.GetDbName(), t.GetTableName())
 	sql := fmt.Sprintf("SELECT %s FROM INFORMATION_SCHEMA.`COLUMNS` %s;", queryColumns, where)
-	result, err := sgl.Query(sql)
+	result, err := db.Query(sql)
 
 	if err != nil {
 		fmt.Printf("Query sql: %s, err: %+v\n", sql, err)
@@ -153,14 +251,14 @@ func (s *Synchronize) queryInformationSchemaColumns(source string) {
 
 // 根據表格 INFORMATION_SCHEMA.`STATISTICS` 對表格索引(如 Primary key)做初始化
 func (s *Synchronize) quertInformationSchemaStatistics(source string) {
-	var sgl *database.Database
-	var t *gdo.Table
+	var db *database.Database
+	var t *gosql.Table
 
 	if source == "from" {
-		sgl = s.fromDB
+		db = s.fromDB
 		t = s.fromTable
 	} else {
-		sgl = s.toDB
+		db = s.toDB
 		t = s.toTable
 	}
 
@@ -177,7 +275,7 @@ func (s *Synchronize) quertInformationSchemaStatistics(source string) {
 	queryColumns := strings.Join(columnNames, ", ")
 	where := fmt.Sprintf("WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s'", t.GetDbName(), t.GetTableName())
 	sql := fmt.Sprintf("SELECT %s FROM INFORMATION_SCHEMA.`STATISTICS` %s;", queryColumns, where)
-	result, err := sgl.Query(sql)
+	result, err := db.Query(sql)
 
 	if err != nil {
 		fmt.Printf("Query err: %+v", err)
@@ -202,7 +300,7 @@ func (s *Synchronize) quertInformationSchemaStatistics(source string) {
 
 		tableParam.AddIndex(kind, result.Datas[i][1], result.Datas[i][2], result.Datas[i][3])
 	}
-	t.SetTableParam(tableParam)
+	t.Creater().SetTableParam(tableParam)
 }
 
 // ====================================================================================================
@@ -263,7 +361,7 @@ func (s *Synchronize) CheckTableStructure() error {
 	// 篩選出需要調整順序的欄位
 	//////////////////////////////////////////////////
 	// 取得 fromTable 的欄位名稱(toTable 的排序依據)
-	orders := s.fromTable.GetColumnNames().Elements
+	orders := s.fromTable.GetColumnNames(true)
 
 	// 根據指定順序(orders)調整表格欄位，並返回被調整的欄位的名稱
 	s.changedOrder = s.toTable.RefreshColumnOrder(orders)
@@ -301,7 +399,7 @@ func (s *Synchronize) CheckTableStructure() error {
 		s.indexMap["PRIMARY KEY"] = []string{
 			"PRIMARY KEY",
 			strings.Join(pks, ", "),
-			s.fromTable.TableParam.IndexType["PRIMARY"],
+			fromTableParam.IndexType["PRIMARY"],
 		}
 	}
 
@@ -421,40 +519,46 @@ func (s *Synchronize) PrintCheckResult() bool {
 	var origin, curret *stmt.Column
 	hasDiff := false
 
-	utils.Info("===== CHANGE / ADD =====")
+	s.print("===== CHANGE / ADD =====")
 	for k, v := range s.alterMap {
 		hasDiff = true
 		curret = s.toTable.GetColumnByName(k)
 
 		if v[0] == "change" {
 			origin = s.originTable.GetColumnByName(v[1])
-			utils.Info("Origin | `%s` %s", v[1], origin.GetInfo())
-			utils.Info("CHANGE | `%s` %s", k, curret.GetInfo())
+			s.print("Origin | `%s` %s", v[1], origin.GetInfo())
+			s.print("CHANGE | `%s` %s", k, curret.GetInfo())
 
 		} else if v[0] == "add" {
-			utils.Info("ADD | `%s` %s", k, curret.GetInfo())
+			s.print("ADD | `%s` %s", k, curret.GetInfo())
 		}
 	}
 
 	// DROP INDEX `索引 2`
-	utils.Info("===== DROP INDEX =====")
+	s.print("===== DROP INDEX =====")
 	for _, index := range s.dropList.Elements {
 		hasDiff = true
-		utils.Info("DROP `%s`", index)
+		s.print("DROP `%s`", index)
 	}
 
 	// ADD INDEX `索引 2`
-	utils.Info("===== ADD INDEX =====")
+	s.print("===== ADD INDEX =====")
 	for index := range s.indexMap {
 		hasDiff = true
-		utils.Info("ADD `%s`", index)
+		s.print("ADD `%s`", index)
 	}
 
 	return hasDiff
 }
 
+func (s *Synchronize) print(format string, a ...any) {
+	if s.Print {
+		fmt.Printf(format+"\n", a...)
+	}
+}
+
 func (s *Synchronize) SyncTableSchema(needExcute bool) error {
-	fmt.Printf("(s *Synchronize) SyncTableSchema | ===== SyncTableSchema =====\n")
+	s.print("(s *Synchronize) SyncTableSchema | ===== SyncTableSchema =====")
 	alter := s.getAlterStmts()
 
 	drop := s.getDropIndex()
@@ -464,10 +568,10 @@ func (s *Synchronize) SyncTableSchema(needExcute bool) error {
 	alter = append(alter, index...)
 
 	if len(alter) == 0 {
-		fmt.Printf("(s *Synchronize) SyncTableSchema | Database schema is same.\n")
+		s.print("Database schema is same.")
 	} else {
 		sql := fmt.Sprintf("ALTER TABLE `%s`.`%s` %s;", s.toTable.GetDbName(), s.toTable.GetTableName(), strings.Join(alter, ", "))
-		fmt.Printf("(s *Synchronize) SyncTableSchema | sql: %s\n", sql)
+		s.print("sql: %s", sql)
 
 		if needExcute {
 			result, err := s.toDB.Exec(sql)
@@ -476,17 +580,16 @@ func (s *Synchronize) SyncTableSchema(needExcute bool) error {
 				return errors.Wrap(err, fmt.Sprintf("sql: %s", sql))
 			}
 
-			fmt.Printf("(s *Synchronize) SyncTableSchema | result: %s\n", result)
+			s.print("(s *Synchronize) SyncTableSchema | result: %s", result)
 		}
 	}
-
 	return nil
 }
 
 // 生成有序的 CHANGE 和 ADD 語法列表
 func (s *Synchronize) getAlterStmts() []string {
 	stmts := []string{}
-	colNames := s.toTable.GetColumnNames().Elements
+	colNames := s.toTable.GetColumnNames(true)
 	var column *stmt.Column
 	var info, sql string
 
@@ -507,7 +610,7 @@ func (s *Synchronize) getAlterStmts() []string {
 				info = fmt.Sprintf("%s AFTER `%s`", column.GetInfo(), lastColumn)
 
 			} else {
-				utils.Info("Wrong idx: %d, colName: %s, cols: %+v", idx, colName, colNames)
+				s.print("Wrong idx: %d, colName: %s, cols: %+v", idx, colName, colNames)
 				continue
 			}
 
@@ -519,7 +622,7 @@ func (s *Synchronize) getAlterStmts() []string {
 				sql = fmt.Sprintf("ADD COLUMN `%s` %s", colName, info)
 
 			} else {
-				utils.Info("Wrong operate: %+v", params)
+				s.print("Wrong operate: %+v", params)
 				continue
 			}
 

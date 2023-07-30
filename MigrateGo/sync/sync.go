@@ -113,7 +113,6 @@ func (s *Synchronize) Execute(config *Config) error {
 
 	// 讀取資料庫結構數據
 	s.InitTable("to")
-
 	err = s.CheckTableStructure()
 
 	if err != nil {
@@ -387,8 +386,6 @@ func (s *Synchronize) CheckTableStructure() error {
 		// 以 fromTable 的表格參數覆蓋 toTable 的設置
 		toTableParam.Primarys = nil
 		toTableParam.Primarys = fromTableParam.Primarys.Clone()
-
-		// fromCol, _ = s.fromTable.GetPrimaryColumn()
 		pks := []string{}
 
 		for _, element := range fromTableParam.Primarys.Elements {

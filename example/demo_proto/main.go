@@ -88,6 +88,8 @@ func main() {
 		InsertDemo()
 	case "q":
 		QueryDemo()
+	case "qe":
+		QueryEmptyDemo()
 	case "u":
 		UpdateDemo()
 	case "d":
@@ -244,6 +246,60 @@ func QueryDemo() {
 	}
 
 	table.PutSelector(selector)
+}
+
+func QueryEmptyDemo() {
+	selector := table.GetSelector()
+	defer table.PutSelector(selector)
+	var where *gosql.WhereStmt
+
+	if tid == 1 {
+		where = gosql.WS().Eq("bi", -1)
+	} else {
+		where = gosql.WS().Eq("ui", -1)
+	}
+
+	fmt.Printf("QueryDemo | where: %+v\n", where)
+	selector.SetCondition(where)
+	sql, err = selector.ToStmt()
+
+	if err != nil {
+		fmt.Printf("Error: %+v\n", err)
+	}
+
+	fmt.Printf("QueryDemo | sql: %s\n", sql)
+
+	if tid == 1 {
+
+		am1s, err := selector.Query(func() any { return &pbgo.AllMight1{} })
+
+		if err != nil {
+			fmt.Printf("Error: %+v\n", err)
+		}
+
+		if len(am1s) == 0 {
+			fmt.Println("am1s is empty.")
+		} else {
+			for _, am1 := range am1s {
+				fmt.Printf("am1: %+v\n", am1)
+			}
+		}
+	} else {
+
+		am2s, err := selector.Query(func() any { return &pbgo.AllMight2{} })
+
+		if err != nil {
+			fmt.Printf("Error: %+v\n", err)
+		}
+
+		if len(am2s) == 0 {
+			fmt.Println("am2s is empty.")
+		} else {
+			for _, am2 := range am2s {
+				fmt.Printf("am2: %+v\n", am2)
+			}
+		}
+	}
 }
 
 func UpdateDemo() {

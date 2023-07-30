@@ -3,23 +3,17 @@ ProtoFolder: "../pb"
 FromDatabase:
   UserName: "db_user"
   Password: "password"
-  Server: "192.168.0.168"
+  Server: "192.168.0.41"
   Port: 3306
   Name: "pekomiko"
-FromTables:
-  # - "api_log"
-  - "gold_log"
-  # - "pay_log"
-  # - "Desk"
+FromTable: "Account"
 ToDatabase:
   UserName: "db_user"
   Password: "password"
-  Server: "192.168.0.168"
+  Server: "192.168.0.41"
   Port: 3306
   Name: "pekomiko"
-ToTables:
-  # - "api_log"
-  - "gold_log"
-  # - "pay_log"
-Generate:
-Print:
+ToTable: "Account"
+Generate: true
+Print: false
+Sync: true

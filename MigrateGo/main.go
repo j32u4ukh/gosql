@@ -19,6 +19,7 @@ var length int
 func init() {
 	synConfig = sync.NewConfig()
 	logger = glog.SetLogger(0, "MigrateGo", level)
+	logger.SetOptions(glog.DefaultOption(false, false))
 	utils.SetLogger(logger)
 }
 

@@ -233,11 +233,15 @@ func (c *Column) Clone() *Column {
 		Type:         c.Type,
 		Size:         c.Size,
 		IsPrimaryKey: c.IsPrimaryKey,
+		IsUnsigned:   c.IsUnsigned,
 		CanNull:      c.CanNull,
 		Default:      c.Default,
+		Update:       c.Update,
 		Algo:         c.Algo,
 		Comment:      c.Comment,
 		Collate:      c.Collate,
+		Dial:         c.Dial,
+		IgnoreThis:   c.IgnoreThis,
 	}
 	return clone
 }
