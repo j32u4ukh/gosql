@@ -27,7 +27,7 @@ func NewSelectStmt(tableName string) *SelectStmt {
 		DbName:       "",
 		TableName:    tableName,
 		QueryColumns: []*SelectItem{},
-		Where:        &WhereStmt{},
+		Where:        nil,
 		OrderBy:      nil,
 		OrderType:    "",
 		Limit:        -1,
@@ -101,7 +101,7 @@ func (s *SelectStmt) SetOffset(offset int32) *SelectStmt {
 
 func (s *SelectStmt) Release() {
 	s.QueryColumns = s.QueryColumns[:0]
-	s.Where.Release()
+	s.Where = nil
 	s.OrderBy = nil
 	s.OrderType = "ASC"
 	s.Limit = -1
@@ -115,14 +115,18 @@ func (s *SelectStmt) ToStmt() (string, error) {
 		return "", errors.Wrap(err, "Failed to format columns.")
 	}
 
-	where, err := s.Where.ToStmt()
+	var where string = ""
 
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to generate where statement.")
-	}
+	if s.Where != nil {
+		where, err = s.Where.ToStmt()
 
-	if where != "" {
-		where = fmt.Sprintf(" WHERE %s", where)
+		if err != nil {
+			return "", errors.Wrap(err, "Failed to generate where statement.")
+		}
+
+		if where != "" {
+			where = fmt.Sprintf(" WHERE %s", where)
+		}
 	}
 
 	var order string
