@@ -40,7 +40,7 @@ func (s *SelectItem) Concat(elements ...string) *SelectItem {
 }
 
 func (s *SelectItem) ToStmt() string {
-	result := s.Name
+	result := fmt.Sprintf("`%s`", s.Name)
 	if s.Alias != "" {
 		result = fmt.Sprintf("%s AS %s", result, s.Alias)
 	}
