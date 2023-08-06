@@ -78,12 +78,12 @@ func InsertStruct(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.C
 	return nil
 }
 
-func QueryStruct(datas [][]string, generator func() any) (objs []any, err error) {
+func QueryStruct(columns []string, datas [][]string, generator func() any) (objs []any, err error) {
 	var i, length int32 = 0, int32(len(datas))
 	objs = make([]any, length)
 	var obj any
 	for i = 0; i < length; i++ {
-		obj, err = queryStructFunc(datas[i], generator)
+		obj, err = queryStructFunc(columns, datas[i], generator)
 		if err != nil {
 			return nil, errors.Wrapf(err, "解析回傳數據時發生錯誤, result: %s", cntr.SliceToString(datas[i]))
 		}
@@ -92,15 +92,18 @@ func QueryStruct(datas [][]string, generator func() any) (objs []any, err error)
 	return objs, nil
 }
 
-func queryStructFunc(data []string, generator func() any) (obj any, err error) {
+func queryStructFunc(columns []string, data []string, generator func() any) (obj any, err error) {
 	var filed reflect.Value
 	obj = generator()
 	rv := reflect.ValueOf(obj).Elem()
-	for i, d := range data {
+	var column, d string
+	var i int
+	for i, column = range columns {
+		d = data[i]
 		if d == "" {
 			continue
 		}
-		filed = rv.FieldByIndex([]int{i})
+		filed = rv.FieldByName(column)
 		SetValue(filed, d, nil)
 	}
 	return obj, nil

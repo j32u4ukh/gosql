@@ -10,7 +10,7 @@ type SelectStmt struct {
 	inited bool
 	// 是否對 SQL injection 做處理
 	useAntiInjection bool
-	queryFunc        func(datas [][]string, generator func() any) (objs []any, err error)
+	queryFunc        FuncQuery
 }
 
 func NewSelectStmt(tableName string) *SelectStmt {
@@ -39,14 +39,14 @@ func (s *SelectStmt) Query(generator func() any) (objs []any, err error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to excute select statement.")
 	}
-	objs, err = s.queryFunc(result.Datas, generator)
+	objs, err = s.queryFunc(result.Columns, result.Datas, generator)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to excute select statement.")
 	}
 	return objs, nil
 }
 
-func (s *SelectStmt) query(datas [][]string, generator func() any) (objs []any, err error) {
+func (s *SelectStmt) query(columns []string, datas [][]string, generator func() any) (objs []any, err error) {
 	length := len(datas)
 	objs = make([]any, length)
 	var temp []string
@@ -58,6 +58,6 @@ func (s *SelectStmt) query(datas [][]string, generator func() any) (objs []any, 
 	return objs, nil
 }
 
-func (s *SelectStmt) SetFuncQuery(queryFunc func(datas [][]string, generator func() any) (objs []any, err error)) {
+func (s *SelectStmt) SetFuncQuery(queryFunc FuncQuery) {
 	s.queryFunc = queryFunc
 }

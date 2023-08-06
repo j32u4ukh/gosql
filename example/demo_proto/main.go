@@ -67,7 +67,7 @@ func main() {
 	table.Init(&gosql.TableConfig{
 		Db:               db,
 		DbName:           dc.DbName,
-		UseAntiInjection: false,
+		UseAntiInjection: true,
 		PtrToDbFunc:      plugin.ProtoToDb,
 		InsertFunc:       plugin.InsertProto,
 		QueryFunc:        plugin.QueryProto,
@@ -78,8 +78,6 @@ func main() {
 		fmt.Printf("NewTable err: %+v\n", err)
 		return
 	}
-
-	// fmt.Printf("table: %+v\n", table)
 
 	switch command {
 	case "c":
@@ -254,22 +252,24 @@ func QueryEmptyDemo() {
 	var where *gosql.WhereStmt
 
 	if tid == 1 {
-		where = gosql.WS().Eq("bi", -1)
+		where = gosql.WS().Ne("bi", -1)
 	} else {
-		where = gosql.WS().Eq("ui", -1)
+		where = gosql.WS().Ne("ui", -1)
 	}
 
 	fmt.Printf("QueryDemo | where: %+v\n", where)
 	selector.SetCondition(where)
-	sql, err = selector.ToStmt()
-
-	if err != nil {
-		fmt.Printf("Error: %+v\n", err)
-	}
-
-	fmt.Printf("QueryDemo | sql: %s\n", sql)
 
 	if tid == 1 {
+		selector.SetSelectItem(stmt.NewSelectItem("Mi"))
+		selector.SetSelectItem(stmt.NewSelectItem("T"))
+		sql, err = selector.ToStmt()
+
+		if err != nil {
+			fmt.Printf("Error: %+v\n", err)
+		}
+
+		fmt.Printf("QueryDemo | sql: %s\n", sql)
 
 		am1s, err := selector.Query(func() any { return &pbgo.AllMight1{} })
 
@@ -285,6 +285,15 @@ func QueryEmptyDemo() {
 			}
 		}
 	} else {
+		selector.SetSelectItem(stmt.NewSelectItem("Msi"))
+		selector.SetSelectItem(stmt.NewSelectItem("Ui"))
+		sql, err = selector.ToStmt()
+
+		if err != nil {
+			fmt.Printf("Error: %+v\n", err)
+		}
+
+		fmt.Printf("QueryDemo | sql: %s\n", sql)
 
 		am2s, err := selector.Query(func() any { return &pbgo.AllMight2{} })
 

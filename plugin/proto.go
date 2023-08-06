@@ -169,19 +169,15 @@ func InsertProto(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Co
 	return nil
 }
 
-func QueryProto(datas [][]string, generator func() any) (objs []any, err error) {
+func QueryProto(columns []string, datas [][]string, generator func() any) (objs []any, err error) {
 	var i, length int32 = 0, int32(len(datas))
 	objs = make([]any, length)
 	if length == 0 {
 		return objs, nil
 	}
-
-	// Column 的資訊是根據 proto 檔生成的，因此沒有 struct 當中被跳過的三個欄位
-	// 因此需要校正兩者的欄位數量差異
-	nColumn := len(datas[0]) + 3
 	var obj any
 	for i = 0; i < length; i++ {
-		obj, err = queryProto(datas[i], nColumn, generator)
+		obj, err = queryProto(columns, datas[i], generator)
 		if err != nil {
 			return nil, errors.Wrapf(err, "解析回傳數據時發生錯誤, result: %s", cntr.SliceToString(datas[i]))
 		}
@@ -190,16 +186,19 @@ func QueryProto(datas [][]string, generator func() any) (objs []any, err error) 
 	return objs, nil
 }
 
-func queryProto(data []string, nColumn int, generator func() any) (obj any, err error) {
-	var filed reflect.Value
-	var d string
+func queryProto(columns []string, data []string, generator func() any) (obj any, err error) {
+	var field reflect.Value
+	var column, d string
 	var i int
 	obj = generator()
 	rv := reflect.ValueOf(obj).Elem()
-	for i = 3; i < nColumn; i++ {
-		filed = rv.FieldByIndex([]int{i})
-		d = data[i-3]
-		SetValue(filed, d, SetMessage)
+	for i, column = range columns {
+		d = data[i]
+		if d == "" {
+			continue
+		}
+		field = rv.FieldByName(column)
+		SetValue(field, d, SetMessage)
 	}
 	return obj, nil
 }

@@ -156,18 +156,18 @@ func QueryDemo() {
 	sql, err = selector.ToStmt()
 
 	if err != nil {
-		utils.Error("Error: %+v\n", err)
+		utils.Error("Error: %+v", err)
 	}
 
-	utils.Debug("sql: %s\n", sql)
+	utils.Debug("sql: %s", sql)
 	edges, err := selector.Query(func() any { return &pbgo.Edge{} })
 
 	if err != nil {
-		fmt.Printf("Error: %+v\n", err)
+		fmt.Printf("Error: %+v", err)
 	}
 
 	for _, edge := range edges {
-		fmt.Printf("edge: %+v\n", edge)
+		fmt.Printf("edge: %+v", edge)
 	}
 }
 
