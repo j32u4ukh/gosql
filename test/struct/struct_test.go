@@ -118,7 +118,7 @@ func TestSelectItemStmt(t *testing.T) {
 	}
 
 	selector := table.GetSelector()
-	selector.SetSelectItem(stmt.NewSelectItem("Content"))
+	selector.SetSelectItem(stmt.NewSelectItem("Content").UseBacktick())
 	selector.SetLimit(5)
 	selector.SetOffset(3)
 	selector.SetCondition(gosql.WS().Ne("Id", -1))

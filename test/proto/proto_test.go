@@ -101,11 +101,11 @@ func TestQueryStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Errorf("TestInsertStmt | Error: %+v\n", err)
+			t.Errorf("TestQueryStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
+			t.Errorf("TestQueryStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -119,8 +119,8 @@ func TestSelectItemStmt(t *testing.T) {
 	}
 
 	selector := table.GetSelector()
-	selector.SetSelectItem(stmt.NewSelectItem("UserName"))
-	selector.SetSelectItem(stmt.NewSelectItem("ItemId"))
+	selector.SetSelectItem(stmt.NewSelectItem("UserName").UseBacktick())
+	selector.SetSelectItem(stmt.NewSelectItem("ItemId").UseBacktick())
 	selector.SetLimit(5)
 	selector.SetOffset(3)
 	selector.SetCondition(gosql.WS().Eq("Index", 3))
@@ -129,11 +129,11 @@ func TestSelectItemStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Errorf("TestInsertStmt | Error: %+v\n", err)
+			t.Errorf("TestSelectItemStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
+			t.Errorf("TestSelectItemStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
