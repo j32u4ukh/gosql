@@ -40,7 +40,7 @@ type AllMight2 struct {
 	Uti int32 `protobuf:"varint,6,opt,name=uti,proto3" json:"uti,omitempty"`
 	// {"comment": "SMALINT", "type":"SMALINT", "size": 6, "unsigned": "true"}
 	Usi int32 `protobuf:"varint,7,opt,name=usi,proto3" json:"usi,omitempty"`
-	// {"comment": "MEDIUMINT", "type":"MEDIUMINT", "size": 9, "unsigned": "true"}
+	// {"comment": "MEDIUMINT", "type":"MEDIUMINT", "size": 9, "unsigned": "true", "primary_key": "default"}
 	Umi int32 `protobuf:"varint,8,opt,name=umi,proto3" json:"umi,omitempty"`
 	// {"comment": "INT", "type":"INT", "size": 11, "unsigned": "true", "primary_key": "default"}
 	Ui int32 `protobuf:"varint,9,opt,name=ui,proto3" json:"ui,omitempty"`

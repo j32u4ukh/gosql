@@ -29,7 +29,7 @@ type Edge struct {
 	Index  int32 `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
 	UserId int32 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Target int32 `protobuf:"varint,3,opt,name=target,proto3" json:"target,omitempty"`
-	// {"ignore": true}
+	// {"ignore": "true"}
 	Targets []int32 `protobuf:"varint,4,rep,packed,name=targets,proto3" json:"targets,omitempty"`
 	// {"default": "current_timestamp()"}
 	CreateTime *TimeStamp `protobuf:"bytes,5,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`

@@ -123,7 +123,7 @@ func InsertDemo() {
 	var am2 *pbgo.AllMight2
 	var i int32
 
-	for i = 0; i < 10; i++ {
+	for i = 0; i <= 20; i++ {
 		if tid == 1 {
 			am1 = &pbgo.AllMight1{
 				Bi: int64(i),
@@ -214,10 +214,6 @@ func QueryDemo() {
 	}
 
 	fmt.Printf("QueryDemo | sql: %s\n", sql)
-
-	// result, _ = selector.Exec()
-
-	// fmt.Printf("QueryDemo | result: %+v\n", result.Datas)
 
 	if tid == 1 {
 
