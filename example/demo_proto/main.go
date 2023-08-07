@@ -215,9 +215,9 @@ func QueryDemo() {
 
 	fmt.Printf("QueryDemo | sql: %s\n", sql)
 
-	result, _ = selector.Exec()
+	// result, _ = selector.Exec()
 
-	fmt.Printf("QueryDemo | result: %+v\n", result.Datas)
+	// fmt.Printf("QueryDemo | result: %+v\n", result.Datas)
 
 	if tid == 1 {
 
@@ -261,8 +261,8 @@ func QueryEmptyDemo() {
 	selector.SetCondition(where)
 
 	if tid == 1 {
-		selector.SetSelectItem(stmt.NewSelectItem("Mi"))
-		selector.SetSelectItem(stmt.NewSelectItem("T"))
+		selector.SetSelectItem(stmt.NewSelectItem("mi"))
+		selector.SetSelectItem(stmt.NewSelectItem("t"))
 		sql, err = selector.ToStmt()
 
 		if err != nil {

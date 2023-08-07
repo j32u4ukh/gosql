@@ -190,17 +190,40 @@ func queryProto(columns []string, data []string, generator func() any) (obj any,
 	var field reflect.Value
 	var column, d string
 	var i int
+	var ok bool
 	obj = generator()
 	rv := reflect.ValueOf(obj).Elem()
+	rt := rv.Type()
+	length := rt.NumField()
 	for i, column = range columns {
 		d = data[i]
 		if d == "" {
 			continue
 		}
-		field = rv.FieldByName(column)
-		SetValue(field, d, SetMessage)
+		if field, ok = getField(rv, rt, length, column); ok {
+			SetValue(field, d, SetMessage)
+		}
 	}
 	return obj, nil
+}
+
+func getField(rv reflect.Value, rt reflect.Type, length int, name string) (reflect.Value, bool) {
+	var field reflect.Value
+	var structField reflect.StructField
+	var splits []string
+	for i := 0; i < length; i++ {
+		structField = rt.Field(i)
+		if value, ok := structField.Tag.Lookup("json"); ok {
+			splits = strings.Split(value, ",")
+			for _, s := range splits {
+				if s == name {
+					field = rv.Field(i)
+					return field, true
+				}
+			}
+		}
+	}
+	return field, false
 }
 
 func UpdateProto(data any, nColumn int32, getColumnFunc func(idx int32) *stmt.Column, updateFunc func(key string, field reflect.Value)) {

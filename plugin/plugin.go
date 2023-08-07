@@ -79,7 +79,7 @@ func ValueToDb(v reflect.Value, useAntiInjection bool, ptrToDb func(reflect.Valu
 
 func SetValue(field reflect.Value, value string, setPointer func(reflect.Value, string)) {
 	kind := field.Kind()
-	// fmt.Printf("SetValue(kind: %v, field: %v, value: %v)\n", kind, field, value)
+	// utils.Info("kind: %v, field: %v, value: %v", kind, field, value)
 
 	switch kind {
 	case reflect.Bool:
@@ -105,7 +105,7 @@ func SetValue(field reflect.Value, value string, setPointer func(reflect.Value, 
 			setPointer(field, value)
 		}
 	}
-	// fmt.Printf("Set Value field: %v\n", field)
+	// utils.Info("Set Value field: %v", field)
 }
 
 func SetMap(filed reflect.Value, value []byte) {
