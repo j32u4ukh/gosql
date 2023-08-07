@@ -62,7 +62,7 @@ func main() {
 	table.Init(&gosql.TableConfig{
 		Db:               db,
 		DbName:           dc.DbName,
-		UseAntiInjection: false,
+		UseAntiInjection: true,
 		InsertFunc:       plugin.InsertStruct,
 		UpdateAnyFunc:    plugin.UpdateStruct,
 		QueryFunc:        plugin.QueryStruct,
@@ -97,7 +97,7 @@ func Test() {
 		{"3", "ghi"},
 	}
 	// desks := plugin.Make(3, func() any { return &Tsukue{} })
-	desks, err := plugin.QueryStruct(datas, func() any { return &Tsukue{} })
+	desks, err := plugin.QueryStruct([]string{"Id", "Content"}, datas, func() any { return &Tsukue{} })
 	if err != nil {
 		fmt.Printf("Failed to QueryStructFunc.")
 		return
@@ -159,6 +159,8 @@ func InsertDemo() {
 
 func QueryDemo() {
 	selector := table.GetSelector()
+	defer table.PutSelector(selector)
+
 	where := gosql.WS().Ne("Id", -1)
 	selector.SetCondition(where)
 	sql, err = selector.ToStmt()
@@ -179,7 +181,19 @@ func QueryDemo() {
 		fmt.Printf("desk: %+v\n", desk)
 	}
 
-	table.PutSelector(selector)
+	utils.Debug("===== SelectItem =====")
+	selector.Release()
+	selector.SetSelectItem(stmt.NewSelectItem("Content"))
+	// result, err = selector.Exec()
+	desks, err = selector.Query(func() any { return &Tsukue{} })
+
+	if err != nil {
+		fmt.Printf("Error: %+v\n", err)
+	}
+
+	for _, desk := range desks {
+		fmt.Printf("desk: %+v\n", desk)
+	}
 }
 
 func UpdateDemo() {

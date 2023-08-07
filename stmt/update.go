@@ -64,13 +64,6 @@ func (s *UpdateStmt) Release() {
 	s.allowEmptyWhere = false
 }
 
-/*
-   修改非 primary key 欄位
-   UPDATE `demo2`.`Desk` SET `item_id`='3' WHERE  `index`=1 AND `user_id`=2;
-
-   修改 primary key 欄位
-   UPDATE `demo2`.`Desk` SET `user_id`='5' WHERE  `index`=1 AND `user_id`=2;
-*/
 func (s *UpdateStmt) ToStmt() (string, error) {
 	if len(s.datas) == 0 {
 		return "", errors.New("Update data is empty.")

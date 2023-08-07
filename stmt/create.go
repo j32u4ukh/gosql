@@ -117,7 +117,6 @@ func (s *CreateStmt) ToStmt() (string, error) {
 	// "PRIMARY KEY (`key_column_name`)"
 	pks := []string{}
 	for _, key := range s.TableParam.Primarys.Elements {
-		// s.TableParam.Primarys.Elements[i] = fmt.Sprintf("`%s`", key)
 		pks = append(pks, fmt.Sprintf("`%s`", key))
 	}
 

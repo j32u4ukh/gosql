@@ -101,11 +101,39 @@ func TestQueryStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Errorf("TestInsertStmt | Error: %+v\n", err)
+			t.Errorf("TestQueryStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
+			t.Errorf("TestQueryStmt |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestSelectItemStmt(t *testing.T) {
+	answer := "SELECT `UserName`, `ItemId` FROM `demo2`.`Desk` WHERE `Index` = 3 LIMIT 5 OFFSET 3;"
+	table, err := InitTable()
+
+	if err != nil {
+		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
+	}
+
+	selector := table.GetSelector()
+	selector.SetSelectItem(stmt.NewSelectItem("UserName").UseBacktick())
+	selector.SetSelectItem(stmt.NewSelectItem("ItemId").UseBacktick())
+	selector.SetLimit(5)
+	selector.SetOffset(3)
+	selector.SetCondition(gosql.WS().Eq("Index", 3))
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestSelectItemStmt | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestSelectItemStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }

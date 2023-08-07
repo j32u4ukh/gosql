@@ -109,6 +109,33 @@ func TestQueryStmt(t *testing.T) {
 	}
 }
 
+func TestSelectItemStmt(t *testing.T) {
+	answer := "SELECT `Content` FROM `pekomiko`.`Desk` WHERE `Id` != -1 LIMIT 5 OFFSET 3;"
+	table, err := InitTable()
+
+	if err != nil {
+		t.Errorf("TestCreateStmt | Failed to init table: %+v\n", err)
+	}
+
+	selector := table.GetSelector()
+	selector.SetSelectItem(stmt.NewSelectItem("Content").UseBacktick())
+	selector.SetLimit(5)
+	selector.SetOffset(3)
+	selector.SetCondition(gosql.WS().Ne("Id", -1))
+	sql, err := selector.ToStmt()
+	table.PutSelector(selector)
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestInsertStmt | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
 func TestUpdateStmt(t *testing.T) {
 	answer := "UPDATE `pekomiko`.`Desk` SET `Content` = 'xyz' WHERE `Id` = 2;"
 	table, err := InitTable()

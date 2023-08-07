@@ -72,13 +72,3 @@ func (t *Table) GetColumnNames() *cntr.Array[string] {
 
 	return arr
 }
-
-// TODO: PrimaryKey 可以有多組
-func (t *Table) GetPrimaryColumn() (*stmt.Column, error) {
-	for _, col := range t.Columns {
-		if col.IsPrimaryKey {
-			return col, nil
-		}
-	}
-	return nil, errors.New(fmt.Sprintf("Not found primary key in %s", t.CreateStmt.TableName))
-}

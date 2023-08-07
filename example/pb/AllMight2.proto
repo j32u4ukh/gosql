@@ -26,7 +26,7 @@ message AllMight2 {
     // {"comment": "SMALINT", "type":"SMALINT", "size": 6, "unsigned": "true"}
     int32 usi = 7;  
 
-    // {"comment": "MEDIUMINT", "type":"MEDIUMINT", "size": 9, "unsigned": "true"}
+    // {"comment": "MEDIUMINT", "type":"MEDIUMINT", "size": 9, "unsigned": "true", "primary_key": "default"}
     int32 umi = 8;
 
     // {"comment": "INT", "type":"INT", "size": 11, "unsigned": "true", "primary_key": "default"}
