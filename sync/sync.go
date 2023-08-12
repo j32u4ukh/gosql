@@ -113,7 +113,6 @@ func (s *Synchronize) Execute(config *Config) error {
 
 	// 讀取資料庫結構數據
 	s.InitTable("to")
-
 	err = s.CheckTableStructure()
 
 	if err != nil {
@@ -169,6 +168,7 @@ func (s *Synchronize) LoadConfig(config *Config) error {
 	switch s.Mode {
 	case ProtoToDbMode:
 		protoPath := fmt.Sprintf("%s/%s.proto", config.ProtoFolder, config.FromTable)
+		// TODO: config 新增 dialect.SQLDialect 類型變數，以指定 MARIA 以外的資料庫類型
 		tableParams, columnParams, err := plugin.GetProtoParams(protoPath, dialect.MARIA)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Failed to get proto parameters from %s.", protoPath))
@@ -387,8 +387,6 @@ func (s *Synchronize) CheckTableStructure() error {
 		// 以 fromTable 的表格參數覆蓋 toTable 的設置
 		toTableParam.Primarys = nil
 		toTableParam.Primarys = fromTableParam.Primarys.Clone()
-
-		// fromCol, _ = s.fromTable.GetPrimaryColumn()
 		pks := []string{}
 
 		for _, element := range fromTableParam.Primarys.Elements {
