@@ -35,7 +35,7 @@ func InitTable() (*gosql.Table, error) {
 }
 
 func TestCreateStmt(t *testing.T) {
-	answer := "CREATE TABLE IF NOT EXISTS `demo2`.`Desk` (`index` INT(11) NOT NULL AUTO_INCREMENT COMMENT '索引值', `user_name` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '玩家名稱' COLLATE 'utf8mb4_bin', `item_id` SMALLINT(6) NOT NULL DEFAULT 0 COMMENT '物品 ID', `time` TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Log 建立時間', PRIMARY KEY (`index`, `user_name`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
+	answer := "CREATE TABLE IF NOT EXISTS `demo2`.`Desk` (`index` INT(11) NOT NULL AUTO_INCREMENT COMMENT '索引值', `user_name` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '玩家名稱' COLLATE 'utf8mb4_bin', `item_id` SMALLINT(6) NOT NULL DEFAULT 0 COMMENT '物品 ID', `time` TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Log 建立時間', `i64` BIGINT(20) NOT NULL DEFAULT 0, `ui64` BIGINT(20) NOT NULL DEFAULT 0, PRIMARY KEY (`index`, `user_name`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
 	table, err := InitTable()
 
 	if err != nil {
@@ -56,7 +56,7 @@ func TestCreateStmt(t *testing.T) {
 }
 
 func TestInsertStmt(t *testing.T) {
-	answer := "INSERT INTO `demo2`.`Desk` (`user_name`, `item_id`) VALUES ('9527', 29);"
+	answer := "INSERT INTO `demo2`.`Desk` (`user_name`, `item_id`, `i64`, `ui64`) VALUES ('9527', 29, -64, 64);"
 	table, err := InitTable()
 
 	if err != nil {
@@ -66,6 +66,8 @@ func TestInsertStmt(t *testing.T) {
 	d1 := &pbgo.Desk{
 		UserName: "9527",
 		ItemId:   29,
+		I64:      -64,
+		Ui64:     64,
 	}
 
 	inserter := table.GetInserter()
@@ -139,7 +141,7 @@ func TestSelectItemStmt(t *testing.T) {
 }
 
 func TestUpdateStmt(t *testing.T) {
-	answer := "UPDATE `demo2`.`Desk` SET `user_name` = '97', `item_id` = 3 WHERE `index` = 2;"
+	answer := "UPDATE `demo2`.`Desk` SET `user_name` = '97', `item_id` = 3, `i64` = -64, `ui64` = 64 WHERE `index` = 2;"
 	table, err := InitTable()
 
 	if err != nil {
@@ -150,6 +152,8 @@ func TestUpdateStmt(t *testing.T) {
 		Index:    2,
 		UserName: "97",
 		ItemId:   3,
+		I64:      -64,
+		Ui64:     64,
 	}
 
 	updater := table.GetUpdater()
