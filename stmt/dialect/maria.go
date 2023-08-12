@@ -5,6 +5,7 @@ import (
 
 	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gosql/stmt/datatype"
+	"github.com/j32u4ukh/gosql/utils"
 )
 
 type maria struct {
@@ -85,7 +86,7 @@ func (s *maria) SizeOf(dataType datatype.DataType, size int32) int32 {
 		case datatype.BIGINT:
 			return 20
 		case datatype.VARCHAR:
-			return 3000
+			return utils.GosqlConfig.MariaVarcharSize
 		case datatype.CHAR:
 			return 50
 		}

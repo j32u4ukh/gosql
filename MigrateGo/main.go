@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: 除了支援 Protobuf 和 Database，之後希望也支援不同形式的表格
 var logger *glog.Logger
 var level glog.LogLevel = glog.DebugLevel
 var synConfig *sync.Config
