@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: 除了支援 Protobuf 和 Database，之後希望也支援不同形式的表格
 var logger *glog.Logger
 var level glog.LogLevel = glog.DebugLevel
 var synConfig *sync.Config
@@ -52,15 +53,30 @@ func main() {
 }
 
 func loadConfig(args []string) error {
-	// TODO: 改用 managedExecute
+	var path string = ""
+	var err error
+	if length == 1 {
+		path = "config.yaml"
+
+		// 使用 os.Stat 函式檢查檔案是否存在
+		_, err = os.Stat(path)
+
+		if os.IsNotExist(err) {
+			return errors.Errorf("檔案 %s 不存在", path)
+		}
+	}
 	for i := 0; i < length; i++ {
 		if args[i] == "--config" {
-			if i+1 < length {
-				err := synConfig.LoadFile(args[i+1])
-				if err != nil {
-					return errors.Wrapf(err, "Failed to load from %s.", args[i+1])
-				}
-			}
+			managedExecute(i, func(idx int) error {
+				path = args[idx]
+				return nil
+			})
+		}
+	}
+	if path != "" {
+		err = synConfig.LoadFile(path)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to load from %s.", path)
 		}
 	}
 	return nil

@@ -26,21 +26,16 @@ func GetProtoParams(path string, sqlDial dialect.SQLDialect) (*stmt.TableParam, 
 	if err != nil {
 		return nil, nil, errors.Wrap(err, fmt.Sprintf("Failed to open %s.\n", path))
 	}
-
 	defer reader.Close()
-
 	got, err := protoparser.Parse(
 		reader,
 		protoparser.WithFilename(filepath.Base(path)),
 	)
-
 	if err != nil {
 		return nil, nil, errors.Wrap(err, fmt.Sprintf("Failed to parse %s.\n", path))
 	}
-
 	// 印出抽象語法樹整體結構
 	// printStructure(got)
-
 	var unorder *ud.Proto
 	var tag string
 	var idx int
@@ -49,10 +44,8 @@ func GetProtoParams(path string, sqlDial dialect.SQLDialect) (*stmt.TableParam, 
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Failed to execute UnorderedInterpret.")
 	}
-
 	msg := unorder.ProtoBody.Messages[0]
 	tableParam := stmt.NewTableParam()
-
 	for _, comment := range msg.Comments {
 		tag = comment.Raw
 		idx = strings.Index(tag, "//")
@@ -60,16 +53,13 @@ func GetProtoParams(path string, sqlDial dialect.SQLDialect) (*stmt.TableParam, 
 		tag = strings.Trim(tag, " ")
 		tableParam.ParserConfig(tag)
 	}
-
 	var param *stmt.ColumnParam
 	var tags []string
 	body := msg.MessageBody
-
 	// 以 stmt.ColumnParamSlice 封裝 []*stmt.ColumnParam{}，以實作排序介面
 	var colParams stmt.ColumnParamSlice
 	colParams = []*stmt.ColumnParam{}
 	// fmt.Printf("GetProtoParams | Messages: %+v\n", body.Messages)
-
 	for _, dict := range body.Maps {
 		tags = []string{}
 
@@ -107,8 +97,6 @@ func GetProtoParams(path string, sqlDial dialect.SQLDialect) (*stmt.TableParam, 
 				tags = append(tags, tag)
 			}
 		}
-
-		// fmt.Printf("GetProtoParams | filed: %+v\n", filed)
 		idx, _ = strconv.Atoi(filed.FieldNumber)
 		param = stmt.NewColumnParam(
 			idx,

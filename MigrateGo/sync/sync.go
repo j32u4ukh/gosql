@@ -168,6 +168,7 @@ func (s *Synchronize) LoadConfig(config *Config) error {
 	switch s.Mode {
 	case ProtoToDbMode:
 		protoPath := fmt.Sprintf("%s/%s.proto", config.ProtoFolder, config.FromTable)
+		// TODO: config 新增 dialect.SQLDialect 類型變數，以指定 MARIA 以外的資料庫類型
 		tableParams, columnParams, err := plugin.GetProtoParams(protoPath, dialect.MARIA)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Failed to get proto parameters from %s.", protoPath))
