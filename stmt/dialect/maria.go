@@ -50,12 +50,13 @@ func (s *maria) TypeOf(dataType datatype.DataType) datatype.DataType {
 	switch dataType {
 	case datatype.TINYINT, datatype.SMALLINT, datatype.MEDIUMINT, datatype.INT, datatype.BIGINT,
 		datatype.FLOAT, datatype.DOUBLE, datatype.DEMICAL,
-		datatype.VARCHAR, datatype.CHAR, datatype.TINYTEXT, datatype.TEXT, datatype.MEDIUMTEXT, datatype.LONGTEXT,
+		datatype.VARCHAR, datatype.CHAR,
+		datatype.TINYTEXT, datatype.TEXT, datatype.MEDIUMTEXT, datatype.LONGTEXT,
 		datatype.DATE, datatype.TIME, datatype.YEAR, datatype.DATETIME, datatype.TIMESTAMP:
 		return dataType
-	case datatype.INT32:
+	case datatype.INT32, datatype.UINT32, datatype.SINT32, datatype.FIXED32, datatype.SFIXED32:
 		return datatype.INT
-	case datatype.INT64:
+	case datatype.INT64, datatype.UINT64, datatype.SINT64, datatype.FIXED64, datatype.SFIXED64:
 		return datatype.BIGINT
 	case datatype.BOOL:
 		return datatype.TINYINT

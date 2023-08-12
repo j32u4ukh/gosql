@@ -11,6 +11,7 @@ const (
 	MEDIUMINT DataType = "MEDIUMINT"
 	INT       DataType = "INT"
 	BIGINT    DataType = "BIGINT"
+	BIT       DataType = "BIT"
 
 	// Float
 	FLOAT   DataType = "FLOAT"
@@ -24,6 +25,8 @@ const (
 	TEXT       DataType = "TEXT"
 	MEDIUMTEXT DataType = "MEDIUMTEXT"
 	LONGTEXT   DataType = "LONGTEXT"
+	JSON       DataType = "JSON"
+	UUID       DataType = "UUID"
 
 	// Time
 	DATE      DataType = "DATE"
@@ -31,6 +34,29 @@ const (
 	YEAR      DataType = "YEAR"
 	DATETIME  DataType = "DATETIME"
 	TIMESTAMP DataType = "TIMESTAMP"
+
+	// Binary
+	BINARY     DataType = "BINARY"
+	VARBINARY  DataType = "VARBINARY"
+	TINYBLOB   DataType = "TINYBLOB"
+	BLOB       DataType = "BLOB"
+	MEDIUMBLOB DataType = "MEDIUMBLOB"
+	LONGBLOB   DataType = "LONGBLOB"
+
+	// Spatial
+	POINT              DataType = "POINT"
+	LINESTRING         DataType = "LINESTRING"
+	POLYGON            DataType = "POLYGON"
+	GEOMETRY           DataType = "GEOMETRY"
+	MULTIPOINT         DataType = "MULTIPOINT"
+	MULTILINESTRING    DataType = "MULTILINESTRING"
+	MULTIPOLYGON       DataType = "MULTIPOLYGON"
+	GEOMETRYCOLLECTION DataType = "GEOMETRYCOLLECTION"
+
+	// Other
+	UNKNOWN DataType = "UNKNOWN"
+	ENUM    DataType = "ENUM"
+	SET     DataType = "SET"
 
 	//////////////////////////////////////////////////
 	// 非 SQL 類型 (Protobuf)
@@ -56,14 +82,16 @@ const (
 func GetOriginType(Type string) DataType {
 	var dt DataType = DataType(Type)
 	switch dt {
-	case TINYINT, SMALLINT, MEDIUMINT, INT, BIGINT,
+	case TINYINT, SMALLINT, MEDIUMINT, INT, BIGINT, BIT,
 		FLOAT, DOUBLE, DEMICAL,
-		VARCHAR, CHAR, TINYTEXT, TEXT, MEDIUMTEXT, LONGTEXT,
+		VARCHAR, CHAR, TINYTEXT, TEXT, MEDIUMTEXT, LONGTEXT, JSON, UUID,
 		DATE, TIME, YEAR, DATETIME, TIMESTAMP,
+		BINARY, VARBINARY, TINYBLOB, BLOB, MEDIUMBLOB, LONGBLOB, GEOMETRYCOLLECTION,
+		UNKNOWN, ENUM, SET,
 		MAP, MESSAGE,
 		INT32, INT64, UINT32, UINT64, SINT32, SINT64,
 		FIXED32, FIXED64, SFIXED32, SFIXED64,
-		BOOL, STRING, "":
+		BOOL, STRING, BYTES, "":
 		return dt
 	default:
 		return MESSAGE
